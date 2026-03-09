@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/Mesteriis/ha-diva/compare/v1.5.0...v1.5.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* package releases from release-please ([0038036](https://github.com/Mesteriis/ha-diva/commit/0038036918203b0045e27b8316e10b7439a3cf01))
+
 ## [1.5.0](https://github.com/Mesteriis/ha-diva/compare/v1.4.0...v1.5.0) (2026-03-09)
 
 

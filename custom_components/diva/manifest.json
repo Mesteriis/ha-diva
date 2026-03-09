@@ -16,7 +16,7 @@
   "requirements": [
     "numpy>=1.26.0"
   ],
-  "version": "1.5.0",
+  "version": "1.5.1",
   "homeassistant": "2026.3.0",
   "issue_tracker": "https://github.com/Mesteriis/ha-diva/issues"
 }
