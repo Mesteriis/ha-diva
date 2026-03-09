@@ -1443,13 +1443,25 @@
           "name": "Model name",
           "description": "Optional upstream model or detector name."
         },
+        "adapter": {
+          "name": "Adapter",
+          "description": "Optional capability adapter such as frigate."
+        },
+        "adapter_payload": {
+          "name": "Adapter payload",
+          "description": "Optional raw provider payload consumed by the selected adapter."
+        },
+        "evidence": {
+          "name": "Evidence",
+          "description": "Optional normalized evidence merged into the stored observation."
+        },
         "message": {
           "name": "Message",
           "description": "Optional human-readable summary."
         },
         "source": {
           "name": "Source",
-          "description": "Source system such as vision_pipeline, ble, or manual."
+          "description": "Source system such as frigate, vision_pipeline, ble, or manual."
         }
       }
     },

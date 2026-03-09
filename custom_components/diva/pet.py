@@ -1878,6 +1878,7 @@ class PetRuntimeState:
     completed_vaccine_doses: dict[str, str] = field(default_factory=dict)
     vaccine_runtime_overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
     generated_reports: list[dict[str, Any]] = field(default_factory=list)
+    report_jobs: list[dict[str, Any]] = field(default_factory=list)
     weight_history: list[dict[str, Any]] = field(default_factory=list)
     runtime_routine_exceptions: list[dict[str, Any]] = field(default_factory=list)
     emitted_schedule_keys: list[str] = field(default_factory=list)
@@ -2552,6 +2553,13 @@ class PetEngine:
                     data=approval,
                 )
             ]
+        raise ValueError("Unknown approval id")
+
+    def get_pending_approval(self, approval_id: str) -> dict[str, Any]:
+        """Return a queued approval payload without consuming it."""
+        for record in reversed(self.state.pending_approvals):
+            if record.get(CONF_APPROVAL_ID) == approval_id:
+                return dict(record)
         raise ValueError("Unknown approval id")
 
     def complete_checklist_item(
@@ -4159,6 +4167,31 @@ class PetEngine:
                         "room_name": context.current_room,
                         "previous_room": previous_room,
                         "sources": list(context.room_presence_sources),
+                    },
+                )
+            )
+
+        if context.current_room is None and context.geofence_breached and self.state.current_room is not None:
+            previous_room = self.state.current_room
+            self.state.current_room = None
+            self.state.room_history.append(
+                {
+                    "timestamp": now.isoformat(),
+                    "room_name": None,
+                    "previous_room": previous_room,
+                    "sources": [],
+                }
+            )
+            self.state.room_history = self.state.room_history[-120:]
+            notices.append(
+                PetNotice(
+                    category="event",
+                    name=CAMERA_EVENT_ROOM_CHANGED,
+                    timestamp=now.isoformat(),
+                    data={
+                        "room_name": None,
+                        "previous_room": previous_room,
+                        "sources": [],
                     },
                 )
             )

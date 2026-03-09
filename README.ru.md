@@ -151,7 +151,10 @@ DIVA автоматически регистрирует custom panel по пу�
 - vaccine complete/reschedule/cancel
 - vaccine override create/edit/remove
 - manual calendar sync
+- review и resolution для calendar conflicts
 - vet и operations report export
+- walk map summary
+- room heatmap summary
 
 Видимость ссылки в sidebar настраивается отдельно:
 

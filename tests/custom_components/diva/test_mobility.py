@@ -1,5 +1,7 @@
 from datetime import date, datetime, timezone
+from types import SimpleNamespace
 
+from custom_components.diva.coordinator import _resolve_room_presence
 from custom_components.diva.pet import (
     PetContext,
     PetEngine,
@@ -43,6 +45,145 @@ def _mobility_profile() -> PetProfile:
             ]
         ),
     )
+
+
+def _fake_hass(states: dict[str, str]):
+    return SimpleNamespace(
+        states=SimpleNamespace(
+            get=lambda entity_id: (
+                SimpleNamespace(state=states[entity_id], attributes={})
+                if entity_id in states
+                else None
+            )
+        )
+    )
+
+
+def test_room_fusion_merges_ble_and_camera_when_they_agree() -> None:
+    profile = PetProfile(
+        pet_id="don_abrikos_a1b2c3",
+        name="Don Abrikos",
+        species="dog",
+        breed="English Cocker Spaniel",
+        birthdate=date(2020, 1, 1),
+        weight_kg=12.4,
+        diet_mode="adult",
+        ble_tracker_entity_id="sensor.don_room_ble",
+        camera_entity_id="camera.pet_guardian",
+        camera_room_name="Kitchen",
+    )
+
+    room, sources = _resolve_room_presence(
+        _fake_hass({}),
+        profile,
+        ble_state="kitchen",
+        camera_analysis={
+            "captured_at_ts": datetime(2026, 3, 9, 12, 0, tzinfo=UTC).timestamp(),
+            "food_interaction": True,
+            "water_interaction": False,
+            "frame_motion": 0.11,
+        },
+        now=datetime(2026, 3, 9, 12, 1, tzinfo=UTC),
+        previous_room=None,
+    )
+
+    assert room == "Kitchen"
+    assert set(sources) == {"camera.pet_guardian", "sensor.don_room_ble"}
+
+
+def test_room_fusion_does_not_let_weak_camera_motion_override_ble_room() -> None:
+    profile = PetProfile(
+        pet_id="don_abrikos_a1b2c3",
+        name="Don Abrikos",
+        species="dog",
+        breed="English Cocker Spaniel",
+        birthdate=date(2020, 1, 1),
+        weight_kg=12.4,
+        diet_mode="adult",
+        ble_tracker_entity_id="sensor.don_room_ble",
+        camera_entity_id="camera.pet_guardian",
+        camera_room_name="Kitchen",
+    )
+
+    room, sources = _resolve_room_presence(
+        _fake_hass({}),
+        profile,
+        ble_state="living_room",
+        camera_analysis={
+            "captured_at_ts": datetime(2026, 3, 9, 12, 0, tzinfo=UTC).timestamp(),
+            "food_interaction": False,
+            "water_interaction": False,
+            "frame_motion": 0.09,
+        },
+        now=datetime(2026, 3, 9, 12, 1, tzinfo=UTC),
+        previous_room="Kitchen",
+    )
+
+    assert room == "Living Room"
+    assert sources == ("sensor.don_room_ble",)
+
+
+def test_room_fusion_allows_strong_camera_interaction_to_override_ble_mismatch() -> None:
+    profile = PetProfile(
+        pet_id="don_abrikos_a1b2c3",
+        name="Don Abrikos",
+        species="dog",
+        breed="English Cocker Spaniel",
+        birthdate=date(2020, 1, 1),
+        weight_kg=12.4,
+        diet_mode="adult",
+        ble_tracker_entity_id="sensor.don_room_ble",
+        camera_entity_id="camera.pet_guardian",
+        camera_room_name="Kitchen",
+    )
+
+    room, sources = _resolve_room_presence(
+        _fake_hass({}),
+        profile,
+        ble_state="living_room",
+        camera_analysis={
+            "captured_at_ts": datetime(2026, 3, 9, 12, 0, tzinfo=UTC).timestamp(),
+            "food_interaction": True,
+            "water_interaction": False,
+            "frame_motion": 0.03,
+        },
+        now=datetime(2026, 3, 9, 12, 1, tzinfo=UTC),
+        previous_room=None,
+    )
+
+    assert room == "Kitchen"
+    assert sources == ("camera.pet_guardian",)
+
+
+def test_room_fusion_ignores_stale_camera_signal() -> None:
+    profile = PetProfile(
+        pet_id="don_abrikos_a1b2c3",
+        name="Don Abrikos",
+        species="dog",
+        breed="English Cocker Spaniel",
+        birthdate=date(2020, 1, 1),
+        weight_kg=12.4,
+        diet_mode="adult",
+        camera_entity_id="camera.pet_guardian",
+        camera_room_name="Kitchen",
+    )
+
+    room, sources = _resolve_room_presence(
+        _fake_hass({}),
+        profile,
+        ble_state=None,
+        camera_analysis={
+            "captured_at_ts": datetime(2026, 3, 9, 12, 0, tzinfo=UTC).timestamp(),
+            "food_interaction": True,
+            "water_interaction": False,
+            "frame_motion": 0.12,
+        },
+        now=datetime(2026, 3, 9, 12, 5, tzinfo=UTC),
+        previous_room=None,
+    )
+
+    assert room is None
+    assert sources == ()
 
 
 def test_room_and_geofence_tracking_emit_notices() -> None:

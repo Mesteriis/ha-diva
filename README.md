@@ -603,7 +603,10 @@ Current panel coverage:
 - vaccine complete, reschedule, cancel
 - vaccine override create, edit, remove
 - manual calendar sync
+- calendar conflict review and resolution
 - vet and operations report export
+- walk map summary
+- room heatmap summary
 
 Sidebar visibility is configurable from `Settings -> Devices & Services -> DIVA -> Configure -> Hub settings`.
 When hidden, the editor route still exists at `/diva-editor`.

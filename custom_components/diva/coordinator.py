@@ -99,6 +99,7 @@ from .pet import (
     normalize_pet_config_record,
     parse_schedule_exceptions,
     serialize_diva_entry_settings_v3,
+    serialize_pet_config_record_v3,
 )
 from .recommendations import evaluate_pet
 from .storage import DivaJSONStorage
@@ -107,6 +108,16 @@ _LOGGER = logging.getLogger(__name__)
 
 HOME_STATES = {"home", "on"}
 ACTIVE_SIGNAL_STATES = {"on", "problem", "detected", "true", "alert"}
+BLE_ROOM_PRIORITY = 5
+CAMERA_ROOM_INTERACTION_PRIORITY = 6
+CAMERA_ROOM_MOTION_PRIORITY = 3
+ROOM_FUSION_MULTI_SOURCE_BONUS = 1
+ROOM_FUSION_BLE_CAMERA_BONUS = 1
+ROOM_FUSION_STICKY_BONUS = 1
+CAMERA_ROOM_SIGNAL_WINDOW_SECONDS = 180.0
+CAMERA_ROOM_MOTION_THRESHOLD = 0.08
+REPORT_JOB_HISTORY_LIMIT = 40
+GENERATED_REPORT_HISTORY_LIMIT = 20
 
 
 @dataclass(slots=True)
@@ -164,7 +175,9 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
     async def _async_setup(self) -> None:
         """Restore persisted runtime state before the first refresh."""
         stored = await self._runtime_store.async_load_entry(self.entry.entry_id)
+        needs_runtime_migration = _stored_runtime_entry_needs_migration(stored)
         stored_pets = stored.get("pets", {})
+        imported_legacy_store = False
         if not stored_pets:
             legacy = await self._store.async_load() or {}
             legacy_pets = legacy.get(CONF_PETS, {})
@@ -174,12 +187,15 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                     for pet_id, payload in legacy_pets.items()
                     if isinstance(payload, dict)
                 }
+                imported_legacy_store = bool(stored_pets)
         for pet_id, managed in self._pets.items():
             stored_pet = stored_pets.get(pet_id, {})
             if isinstance(stored_pet, dict) and "runtime" in stored_pet:
                 managed.engine.restore(stored_pet.get("runtime"))
             elif isinstance(stored_pet, dict):
                 managed.engine.restore(stored_pet)
+        if needs_runtime_migration or imported_legacy_store:
+            await self._async_save_runtime_state()
 
     async def _async_update_data(self) -> dict[str, PetSnapshot]:
         """Refresh runtime data and return the latest snapshot map."""
@@ -196,6 +212,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                 if analysis is not None:
                     notices.extend(managed.engine.apply_camera_analysis(now, analysis))
                     managed.camera.last_analysis = {
+                        "captured_at_ts": now.timestamp(),
                         "food_empty": analysis.food_empty,
                         "water_empty": analysis.water_empty,
                         "food_interaction": analysis.food_interaction,
@@ -203,7 +220,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                         **analysis.debug,
                     }
 
-            context = self._build_pet_context(managed)
+            context = self._build_pet_context(managed, now)
             snapshot, refresh_notices = managed.engine.refresh(now, context)
             notices.extend(refresh_notices)
             snapshot, insight_notices, active_anomalies, sent_recommendations = evaluate_pet(
@@ -556,6 +573,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
         confidence: float = 0.85,
         duration_seconds: int | None = None,
         model_name: str | None = None,
+        evidence: dict[str, Any] | None = None,
     ) -> None:
         """Record an external behavior observation for a pet."""
         await self._async_apply_pet_notices(
@@ -569,6 +587,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                 confidence=confidence,
                 duration_seconds=duration_seconds,
                 model_name=model_name,
+                evidence=evidence,
             ),
         )
 
@@ -685,12 +704,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
         """Approve and execute a previously queued action."""
         managed = self._pets[pet_id]
         now = dt_util.now()
-        approval, approval_notices = managed.engine.approve_pending_action(
-            now,
-            approval_id,
-            approved_by=approved_by,
-            note=note,
-        )
+        approval = managed.engine.get_pending_approval(approval_id)
         action_name = str(approval.get(CONF_ACTION_NAME, "")).strip()
         action_payload = dict(approval.get("payload", {}))
         action_notices, capture_food_reference, capture_water_reference = self._execute_approved_action(
@@ -698,6 +712,12 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
             now,
             action_name=action_name,
             payload=action_payload,
+        )
+        _approved, approval_notices = managed.engine.approve_pending_action(
+            now,
+            approval_id,
+            approved_by=approved_by,
+            note=note,
         )
         await self._async_apply_pet_notices(
             pet_id,
@@ -714,46 +734,137 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
         history_days: int = 30,
     ) -> str:
         """Generate a text-first vet report for automation handoff."""
+        return await self._async_generate_report(
+            pet_id,
+            report_kind="vet",
+            report_format=report_format,
+            history_days=history_days,
+            build_report=lambda now, snapshot, managed: managed.engine.build_vet_report(
+                now,
+                snapshot,
+                history_days=history_days,
+            ),
+            success_notice_name="vet_report_generated",
+        )
+
+    async def async_generate_operations_report(
+        self,
+        pet_id: str,
+        *,
+        report_format: str = "txt",
+        history_days: int = 7,
+    ) -> str:
+        """Generate an operations summary report for automation handoff."""
+        return await self._async_generate_report(
+            pet_id,
+            report_kind="operations",
+            report_format=report_format,
+            history_days=history_days,
+            build_report=lambda now, snapshot, managed: managed.engine.build_operations_report(
+                now,
+                snapshot,
+                history_days=history_days,
+            ),
+            success_notice_name=CAMERA_EVENT_OPERATIONS_REPORT,
+        )
+
+    async def _async_generate_report(
+        self,
+        pet_id: str,
+        *,
+        report_kind: str,
+        report_format: str,
+        history_days: int,
+        build_report,
+        success_notice_name: str,
+    ) -> str:
+        """Generate a report file and track its lifecycle."""
         managed = self._pets[pet_id]
         now = dt_util.now()
+        job = self._start_report_job(
+            managed,
+            report_kind=report_kind,
+            report_format=report_format,
+            history_days=history_days,
+            requested_at=now,
+        )
+        await self._async_save_runtime_state()
+        await self.async_request_refresh()
         if self.data and pet_id in self.data:
             snapshot = self.data[pet_id]
         else:
-            snapshot, notices = managed.engine.refresh(now, self._build_pet_context(managed))
-            managed.engine.append_records(notices)
-        report = managed.engine.build_vet_report(now, snapshot, history_days=history_days)
-        reports_dir = self.hass.config.path("diva_reports")
-        report_path = await self.hass.async_add_executor_job(_write_text_report_file, reports_dir, report["filename"], report["content"])
-        if report_format == "pdf":
-            pdf_filename = report["filename"].replace(".txt", ".pdf")
-            report_path = await self.hass.async_add_executor_job(
-                _write_pdf_report_file,
-                reports_dir,
-                pdf_filename,
-                report["content"],
-                report["caption"],
+            snapshot, refresh_notices = managed.engine.refresh(now, self._build_pet_context(managed, now))
+            managed.engine.append_records(refresh_notices)
+        try:
+            report = build_report(now, snapshot, managed)
+            report_path = await self._async_write_report_file(
+                report_format=report_format,
+                report=report,
             )
-        elif report_format != "txt":
-            raise ValueError("Unsupported report format")
+        except Exception as err:
+            finished_at = dt_util.now()
+            self._finish_report_job(
+                managed,
+                job_id=job["job_id"],
+                status="failed",
+                finished_at=finished_at,
+                error=str(err),
+            )
+            notices = [
+                PetNotice(
+                    category="event",
+                    name=f"{report_kind}_report_failed",
+                    timestamp=finished_at.isoformat(),
+                    severity="warning",
+                    message=str(err),
+                    data={
+                        "job_id": job["job_id"],
+                        "report_kind": report_kind,
+                        "report_format": report_format,
+                        "history_days": history_days,
+                        "error": str(err),
+                    },
+                )
+            ]
+            managed.engine.append_records(notices)
+            await self._async_save_runtime_state()
+            await self._async_fire_notices((managed.profile, notice) for notice in notices)
+            await self.async_request_refresh()
+            raise
+
+        finished_at = dt_util.now()
+        self._finish_report_job(
+            managed,
+            job_id=job["job_id"],
+            status="completed",
+            finished_at=finished_at,
+            report_path=report_path,
+            caption=report["caption"],
+        )
         managed.engine.state.generated_reports.append(
             {
+                "job_id": job["job_id"],
                 "path": report_path,
-                "generated_at": now.isoformat(),
+                "generated_at": finished_at.isoformat(),
                 "format": report_format,
                 "history_days": history_days,
                 "caption": report["caption"],
+                "report_kind": report_kind,
+                "status": "completed",
             }
         )
-        managed.engine.state.generated_reports = managed.engine.state.generated_reports[-20:]
+        managed.engine.state.generated_reports = managed.engine.state.generated_reports[-GENERATED_REPORT_HISTORY_LIMIT:]
         notices = [
             PetNotice(
                 category="event",
-                name="vet_report_generated",
-                timestamp=now.isoformat(),
+                name=success_notice_name,
+                timestamp=finished_at.isoformat(),
                 data={
+                    "job_id": job["job_id"],
                     "report_path": report_path,
                     "report_format": report_format,
                     "history_days": history_days,
+                    "report_kind": report_kind,
                     "telegram_caption": report["caption"],
                     **report["summary"],
                 },
@@ -765,70 +876,80 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
         await self.async_request_refresh()
         return report_path
 
-    async def async_generate_operations_report(
+    async def _async_write_report_file(
         self,
-        pet_id: str,
         *,
-        report_format: str = "txt",
-        history_days: int = 7,
+        report_format: str,
+        report: dict[str, Any],
     ) -> str:
-        """Generate an operations summary report for automation handoff."""
-        managed = self._pets[pet_id]
-        now = dt_util.now()
-        if self.data and pet_id in self.data:
-            snapshot = self.data[pet_id]
-        else:
-            snapshot, refresh_notices = managed.engine.refresh(now, self._build_pet_context(managed))
-            managed.engine.append_records(refresh_notices)
-        report = managed.engine.build_operations_report(now, snapshot, history_days=history_days)
+        """Write a report file in the requested format."""
         reports_dir = self.hass.config.path("diva_reports")
-        report_path = await self.hass.async_add_executor_job(
-            _write_text_report_file,
-            reports_dir,
-            report["filename"],
-            report["content"],
-        )
+        if report_format == "txt":
+            return await self.hass.async_add_executor_job(
+                _write_text_report_file,
+                reports_dir,
+                report["filename"],
+                report["content"],
+            )
         if report_format == "pdf":
             pdf_filename = report["filename"].replace(".txt", ".pdf")
-            report_path = await self.hass.async_add_executor_job(
+            return await self.hass.async_add_executor_job(
                 _write_pdf_report_file,
                 reports_dir,
                 pdf_filename,
                 report["content"],
                 report["caption"],
             )
-        elif report_format != "txt":
-            raise ValueError("Unsupported report format")
-        managed.engine.state.generated_reports.append(
-            {
-                "path": report_path,
-                "generated_at": now.isoformat(),
-                "format": report_format,
-                "history_days": history_days,
-                "caption": report["caption"],
-                "report_kind": "operations",
-            }
-        )
-        managed.engine.state.generated_reports = managed.engine.state.generated_reports[-20:]
-        notices = [
-            PetNotice(
-                category="event",
-                name=CAMERA_EVENT_OPERATIONS_REPORT,
-                timestamp=now.isoformat(),
-                data={
-                    "report_path": report_path,
-                    "report_format": report_format,
-                    "history_days": history_days,
-                    "telegram_caption": report["caption"],
-                    **report["summary"],
-                },
-            )
-        ]
-        managed.engine.append_records(notices)
-        await self._async_save_runtime_state()
-        await self._async_fire_notices((managed.profile, notice) for notice in notices)
-        await self.async_request_refresh()
-        return report_path
+        raise ValueError("Unsupported report format")
+
+    def _start_report_job(
+        self,
+        managed: ManagedPet,
+        *,
+        report_kind: str,
+        report_format: str,
+        history_days: int,
+        requested_at,
+    ) -> dict[str, Any]:
+        """Create a running report job record."""
+        job = {
+            "job_id": _report_job_id(managed.profile.pet_id, report_kind, requested_at),
+            "report_kind": report_kind,
+            "report_format": report_format,
+            "history_days": history_days,
+            "status": "running",
+            "requested_at": requested_at.isoformat(),
+        }
+        managed.engine.state.report_jobs.append(job)
+        managed.engine.state.report_jobs = managed.engine.state.report_jobs[-REPORT_JOB_HISTORY_LIMIT:]
+        return job
+
+    def _finish_report_job(
+        self,
+        managed: ManagedPet,
+        *,
+        job_id: str,
+        status: str,
+        finished_at,
+        report_path: str | None = None,
+        caption: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        """Update a tracked report job with its terminal state."""
+        for record in reversed(managed.engine.state.report_jobs):
+            if record.get("job_id") != job_id:
+                continue
+            record["status"] = status
+            record["finished_at"] = finished_at.isoformat()
+            if report_path is not None:
+                record["report_path"] = report_path
+            if caption is not None:
+                record["caption"] = caption
+            if error is not None:
+                record["error"] = error
+            else:
+                record.pop("error", None)
+            return
 
     async def async_upsert_medication_course(self, pet_id: str, payload: dict[str, Any]) -> None:
         """Create or replace a medication course in the pet profile."""
@@ -1033,7 +1154,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                 for event in external_events
                 if (sync_key_candidate := _extract_diva_sync_key(getattr(event, "description", None))) is not None
             }.get(sync_key)
-            context = self._build_pet_context(managed)
+            context = self._build_pet_context(managed, now)
             base_by_key = {
                 event.event_id: event
                 for event in managed.engine.timeline_events(
@@ -1215,7 +1336,7 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
 
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         end = now + timedelta(days=max(1, days))
-        context = self._build_pet_context(managed)
+        context = self._build_pet_context(managed, now)
 
         for calendar_entity_id in calendars:
             entity = component.get_entity(calendar_entity_id)
@@ -1450,21 +1571,21 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                             last_seen_at=now,
                         )
                         continue
-                    notices.extend(
-                        managed.engine.record_calendar_conflict(
-                            calendar_entity_id,
-                            sync_key=sync_key,
-                            conflict_type="deleted_external",
-                            reason="External calendar deleted a DIVA event",
-                            source_of_truth=source_of_truth,
-                            external_uid=None,
-                            base_event=base_event,
-                            effective_event=effective_event,
-                            external_event=None,
-                            occurred_at=now,
-                        )
+                    conflict_notices = managed.engine.record_calendar_conflict(
+                        calendar_entity_id,
+                        sync_key=sync_key,
+                        conflict_type="deleted_external",
+                        reason="External calendar deleted a DIVA event",
+                        source_of_truth=source_of_truth,
+                        external_uid=None,
+                        base_event=base_event,
+                        effective_event=effective_event,
+                        external_event=None,
+                        occurred_at=now,
                     )
-                    counts["conflicts"] += 1
+                    notices.extend(conflict_notices)
+                    if conflict_notices:
+                        counts["conflicts"] += 1
                 continue
 
             if _events_match(external, base_event):
@@ -1530,21 +1651,21 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                 continue
 
             if source_of_truth == CALENDAR_SOURCE_OF_TRUTH_MANUAL_REVIEW:
-                notices.extend(
-                    managed.engine.record_calendar_conflict(
-                        calendar_entity_id,
-                        sync_key=sync_key,
-                        conflict_type="diverged",
-                        reason="External calendar diverged from DIVA event",
-                        source_of_truth=source_of_truth,
-                        external_uid=getattr(external, "uid", None),
-                        base_event=base_event,
-                        effective_event=effective_event,
-                        external_event=_external_event_snapshot(external),
-                        occurred_at=now,
-                    )
+                conflict_notices = managed.engine.record_calendar_conflict(
+                    calendar_entity_id,
+                    sync_key=sync_key,
+                    conflict_type="diverged",
+                    reason="External calendar diverged from DIVA event",
+                    source_of_truth=source_of_truth,
+                    external_uid=getattr(external, "uid", None),
+                    base_event=base_event,
+                    effective_event=effective_event,
+                    external_event=_external_event_snapshot(external),
+                    occurred_at=now,
                 )
-                counts["conflicts"] += 1
+                notices.extend(conflict_notices)
+                if conflict_notices:
+                    counts["conflicts"] += 1
 
         for sync_key, external in synced_external.items():
             if sync_key in base_by_key:
@@ -1596,21 +1717,21 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
                 changed = True
                 continue
             if source_of_truth == CALENDAR_SOURCE_OF_TRUTH_MANUAL_REVIEW:
-                notices.extend(
-                    managed.engine.record_calendar_conflict(
-                        calendar_entity_id,
-                        sync_key=sync_key,
-                        conflict_type="unmanaged_external",
-                        reason="External calendar contains an unmanaged DIVA-marked event",
-                        source_of_truth=source_of_truth,
-                        external_uid=getattr(external, "uid", None),
-                        base_event=None,
-                        effective_event=effective_event,
-                        external_event=_external_event_snapshot(external),
-                        occurred_at=now,
-                    )
+                conflict_notices = managed.engine.record_calendar_conflict(
+                    calendar_entity_id,
+                    sync_key=sync_key,
+                    conflict_type="unmanaged_external",
+                    reason="External calendar contains an unmanaged DIVA-marked event",
+                    source_of_truth=source_of_truth,
+                    external_uid=getattr(external, "uid", None),
+                    base_event=None,
+                    effective_event=effective_event,
+                    external_event=_external_event_snapshot(external),
+                    occurred_at=now,
                 )
-                counts["conflicts"] += 1
+                notices.extend(conflict_notices)
+                if conflict_notices:
+                    counts["conflicts"] += 1
         return changed, notices, counts
 
     async def _async_apply_pet_notices(
@@ -1862,8 +1983,9 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
             },
         }
 
-    def _build_pet_context(self, managed: ManagedPet) -> PetContext:
+    def _build_pet_context(self, managed: ManagedPet, now=None) -> PetContext:
         """Read HA entities linked to the pet and convert them to context."""
+        now = now or dt_util.now()
         profile = managed.profile
         gps_state = _entity_state(self.hass, profile.gps_tracker_entity_id)
         ble_state = _entity_state(self.hass, profile.ble_tracker_entity_id)
@@ -1882,6 +2004,8 @@ class DivaCoordinator(DataUpdateCoordinator[dict[str, PetSnapshot]]):
             profile,
             ble_state=ble_state,
             camera_analysis=managed.camera.last_analysis,
+            now=now,
+            previous_room=managed.engine.state.current_room,
         )
         current_zone, geofence_breached, distance_from_safe_zone_m = _resolve_zone_context(
             profile,
@@ -1954,6 +2078,11 @@ def _write_pdf_report_file(base_path: str, filename: str, content: str, title: s
     path = reports_dir / filename
     path.write_bytes(_render_simple_pdf(title=title, text=content))
     return str(path)
+
+
+def _report_job_id(pet_id: str, report_kind: str, requested_at) -> str:
+    """Build a stable runtime identifier for a report export job."""
+    return f"{pet_id}:report:{report_kind}:{int(requested_at.timestamp() * 1000)}"
 
 
 def _render_simple_pdf(*, title: str, text: str) -> bytes:
@@ -2063,8 +2192,46 @@ def _runtime_sections(state) -> dict[str, Any]:
         },
         "reports": {
             "generated_reports": state.generated_reports[-40:],
+            "report_jobs": state.report_jobs[-40:],
         },
     }
+
+
+def _stored_runtime_entry_needs_migration(payload: dict[str, Any]) -> bool:
+    """Return whether a persisted runtime entry should be rewritten to the canonical v3 shape."""
+    if not payload:
+        return False
+    if int(payload.get(CONF_PET_SCHEMA, 0) or 0) < PET_SCHEMA_VERSION:
+        return True
+    if payload.get("storage_backend") != RUNTIME_STORAGE_BACKEND:
+        return True
+
+    stored_pets = payload.get("pets")
+    if not isinstance(stored_pets, dict):
+        return True
+
+    for stored_pet in stored_pets.values():
+        if not isinstance(stored_pet, dict):
+            return True
+        if "runtime" not in stored_pet or not isinstance(stored_pet.get("runtime"), dict):
+            return True
+        if "snapshot" not in stored_pet:
+            return True
+        if not isinstance(stored_pet.get("timeline"), list):
+            return True
+        if not isinstance(stored_pet.get("camera"), dict):
+            return True
+        if not isinstance(stored_pet.get("runtime_sections"), dict):
+            return True
+
+        stored_profile = stored_pet.get("profile")
+        if not isinstance(stored_profile, dict):
+            return True
+        canonical_profile = serialize_pet_config_record_v3(normalize_pet_config_record(dict(stored_profile)))
+        if stored_profile != canonical_profile:
+            return True
+
+    return False
 
 
 def _entry_settings(entry: ConfigEntry) -> dict[str, Any]:
@@ -2196,37 +2363,138 @@ def _resolve_room_presence(
     *,
     ble_state: str | None,
     camera_analysis: dict[str, Any] | None,
+    now,
+    previous_room: str | None = None,
 ) -> tuple[str | None, tuple[str, ...]]:
     """Resolve the current room from configured sources, BLE, and camera."""
-    candidates: list[tuple[int, str, str]] = []
+    candidates: dict[str, dict[str, Any]] = {}
     for source in profile.room_presence_sources:
         state = hass.states.get(source.entity_id)
         if state is None:
             continue
         state_value = str(state.state).strip()
         if _room_source_active(state_value, source.match_state, source.room_name):
-            candidates.append((source.priority, source.room_name, source.entity_id))
+            _add_room_candidate(
+                candidates,
+                room_name=source.room_name,
+                score=source.priority,
+                source=source.entity_id,
+                source_type="configured",
+            )
 
-    if ble_state and ble_state.lower() not in HOME_STATES | {"not_home", "away", "off"}:
-        candidates.append((5, ble_state.replace("_", " ").title(), profile.ble_tracker_entity_id or "ble_tracker"))
-
-    if (
-        profile.camera_room_name
-        and camera_analysis
-        and (
-            camera_analysis.get("food_interaction")
-            or camera_analysis.get("water_interaction")
-            or float(camera_analysis.get("frame_motion", 0.0)) >= 0.08
+    ble_room = _ble_room_name(ble_state)
+    if ble_room:
+        _add_room_candidate(
+            candidates,
+            room_name=ble_room,
+            score=BLE_ROOM_PRIORITY,
+            source=profile.ble_tracker_entity_id or "ble_tracker",
+            source_type="ble",
         )
-    ):
-        candidates.append((6, profile.camera_room_name, profile.camera_entity_id or "camera"))
+
+    camera_score = _camera_room_score(camera_analysis, now)
+    if profile.camera_room_name and camera_score is not None:
+        _add_room_candidate(
+            candidates,
+            room_name=profile.camera_room_name,
+            score=camera_score,
+            source=profile.camera_entity_id or "camera",
+            source_type="camera",
+        )
 
     if not candidates:
         return None, ()
-    candidates.sort(key=lambda item: (-item[0], item[1], item[2]))
-    room_name = candidates[0][1]
-    room_sources = tuple(source for _, candidate_room, source in candidates if candidate_room == room_name)
-    return room_name, room_sources
+    previous_normalized = _normalize_room_name(previous_room)
+    for candidate in candidates.values():
+        if len(candidate["source_types"]) > 1:
+            candidate["score"] += (len(candidate["source_types"]) - 1) * ROOM_FUSION_MULTI_SOURCE_BONUS
+        if {"ble", "camera"}.issubset(candidate["source_types"]):
+            candidate["score"] += ROOM_FUSION_BLE_CAMERA_BONUS
+        if previous_normalized and candidate["normalized"] == previous_normalized:
+            candidate["score"] += ROOM_FUSION_STICKY_BONUS
+
+    resolved = sorted(
+        candidates.values(),
+        key=lambda item: (-item["score"], -len(item["sources"]), item["room_name"]),
+    )[0]
+    return resolved["room_name"], tuple(sorted(resolved["sources"]))
+
+
+def _add_room_candidate(
+    candidates: dict[str, dict[str, Any]],
+    *,
+    room_name: str,
+    score: int,
+    source: str,
+    source_type: str,
+) -> None:
+    """Merge a room candidate into the fusion map."""
+    normalized = _normalize_room_name(room_name)
+    if not normalized:
+        return
+    candidate = candidates.setdefault(
+        normalized,
+        {
+            "normalized": normalized,
+            "room_name": room_name,
+            "score": 0,
+            "sources": set(),
+            "source_types": set(),
+            "label_source": source_type,
+        },
+    )
+    candidate["score"] += score
+    candidate["sources"].add(source)
+    candidate["source_types"].add(source_type)
+    if _room_label_priority(source_type) > _room_label_priority(candidate["label_source"]):
+        candidate["room_name"] = room_name
+        candidate["label_source"] = source_type
+
+
+def _room_label_priority(source_type: str) -> int:
+    """Prefer configured labels over camera labels over BLE-derived labels."""
+    if source_type == "configured":
+        return 3
+    if source_type == "camera":
+        return 2
+    return 1
+
+
+def _normalize_room_name(room_name: str | None) -> str:
+    """Normalize room naming across BLE, camera, and configured sources."""
+    if room_name is None:
+        return ""
+    return " ".join(str(room_name).replace("_", " ").strip().lower().split())
+
+
+def _ble_room_name(ble_state: str | None) -> str | None:
+    """Convert a BLE tracker state into a room-like label when possible."""
+    if not ble_state:
+        return None
+    normalized = ble_state.strip().lower()
+    if normalized in HOME_STATES | {"not_home", "away", "off", "unknown", "unavailable"}:
+        return None
+    return ble_state.replace("_", " ").title()
+
+
+def _camera_room_score(camera_analysis: dict[str, Any] | None, now) -> int | None:
+    """Return a fusion score for the latest camera room signal."""
+    if not camera_analysis:
+        return None
+    captured_at_ts = camera_analysis.get("captured_at_ts")
+    try:
+        if captured_at_ts is None or now.timestamp() - float(captured_at_ts) > CAMERA_ROOM_SIGNAL_WINDOW_SECONDS:
+            return None
+    except (TypeError, ValueError, AttributeError):
+        return None
+    if camera_analysis.get("food_interaction") or camera_analysis.get("water_interaction"):
+        return CAMERA_ROOM_INTERACTION_PRIORITY
+    try:
+        if float(camera_analysis.get("frame_motion", 0.0) or 0.0) >= CAMERA_ROOM_MOTION_THRESHOLD:
+            return CAMERA_ROOM_MOTION_PRIORITY
+    except (TypeError, ValueError):
+        return None
+    return None
 
 
 def _room_source_active(state_value: str, match_state: str | None, room_name: str) -> bool:

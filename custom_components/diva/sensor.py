@@ -514,6 +514,7 @@ SENSORS: tuple[DivaSensorDescription, ...] = (
             "weekly_summary": coordinator.get_snapshot(pet_id).weekly_summary,
             "recent_journal": coordinator.pets[pet_id].engine.state.journal_entries[-20:],
             "generated_reports": coordinator.pets[pet_id].engine.state.generated_reports[-10:],
+            "report_jobs": coordinator.pets[pet_id].engine.state.report_jobs[-10:],
         },
     ),
     DivaSensorDescription(
@@ -552,6 +553,8 @@ SENSORS: tuple[DivaSensorDescription, ...] = (
             "pet_id": pet_id,
             "pet_name": coordinator.get_profile(pet_id).name,
             "reports": coordinator.pets[pet_id].engine.state.generated_reports[-20:],
+            "jobs": coordinator.pets[pet_id].engine.state.report_jobs[-20:],
+            "jobs_by_status": _report_job_counts(coordinator.pets[pet_id].engine.state.report_jobs),
         },
     ),
     DivaSensorDescription(
@@ -771,6 +774,15 @@ def _completed_checklist_count(coordinator: DivaCoordinator, pet_id: str, *, day
         if now - completed_at <= timedelta(days=days):
             count += 1
     return count
+
+
+def _report_job_counts(report_jobs: list[dict[str, Any]]) -> dict[str, int]:
+    """Return a compact report export status breakdown."""
+    counts: dict[str, int] = {}
+    for item in report_jobs:
+        status = str(item.get("status", "unknown")).strip() or "unknown"
+        counts[status] = counts.get(status, 0) + 1
+    return counts
 
 
 def _risk_band(score: float) -> str:

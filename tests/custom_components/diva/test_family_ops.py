@@ -111,6 +111,25 @@ def test_approval_queue_and_approval_notice_flow() -> None:
     assert engine.state.pending_approvals == []
 
 
+def test_pending_approval_lookup_is_non_destructive() -> None:
+    engine = PetEngine(_profile())
+    requested_at = datetime(2026, 3, 9, 8, 30, tzinfo=UTC)
+
+    engine.queue_action_approval(
+        requested_at,
+        action_name=APPROVAL_ACTION_CARE,
+        category="care",
+        payload={"action": "medication_given"},
+        requested_by="Alex",
+    )
+    approval_id = engine.state.pending_approvals[0]["approval_id"]
+
+    approval = engine.get_pending_approval(approval_id)
+
+    assert approval["approval_id"] == approval_id
+    assert len(engine.state.pending_approvals) == 1
+
+
 def test_operations_report_contains_audit_and_summary() -> None:
     engine = PetEngine(_profile())
     engine.state.daily_history = [

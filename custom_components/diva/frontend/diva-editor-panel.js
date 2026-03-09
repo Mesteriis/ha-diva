@@ -8,6 +8,7 @@ const PANEL_TEXT = {
     medications: "Medication Courses",
     vaccines: "Vaccines",
     reports: "Reports & Calendar",
+    mobility: "Mobility & Rooms",
     addMedication: "Add medication",
     editMedication: "Edit medication",
     remove: "Remove",
@@ -88,6 +89,25 @@ const PANEL_TEXT = {
     reportPath: "Path",
     generatedAt: "Generated",
     statusLabel: "Status",
+    walkMap: "Walk map",
+    roomHeatmap: "Room heatmap",
+    activeWalk: "Active walk",
+    distanceToday: "Distance today",
+    walksToday: "Walks today",
+    routePoints: "Route points",
+    currentZone: "Current zone",
+    currentRoom: "Current room",
+    mapCenter: "Map center",
+    lastWalk: "Last walk",
+    routeSummary: "Route summary",
+    preferredRooms: "Preferred rooms",
+    avoidedRooms: "Avoided rooms",
+    roomToday: "Today",
+    roomWeek: "Last 7 days",
+    noRoute: "No route data yet.",
+    noRoomHeatmap: "No room dwell data yet.",
+    yes: "Yes",
+    no: "No",
   },
   ru: {
     title: "Редактор DIVA",
@@ -98,6 +118,7 @@ const PANEL_TEXT = {
     medications: "Курсы лекарств",
     vaccines: "Прививки",
     reports: "Отчеты и календарь",
+    mobility: "Мобильность и комнаты",
     addMedication: "Добавить лекарство",
     editMedication: "Изменить лекарство",
     remove: "Удалить",
@@ -178,6 +199,25 @@ const PANEL_TEXT = {
     reportPath: "Путь",
     generatedAt: "Создан",
     statusLabel: "Статус",
+    walkMap: "Карта прогулки",
+    roomHeatmap: "Теплокарта комнат",
+    activeWalk: "Прогулка активна",
+    distanceToday: "Дистанция за сегодня",
+    walksToday: "Прогулок сегодня",
+    routePoints: "Точек маршрута",
+    currentZone: "Текущая зона",
+    currentRoom: "Текущая комната",
+    mapCenter: "Центр карты",
+    lastWalk: "Последняя прогулка",
+    routeSummary: "Сводка маршрута",
+    preferredRooms: "Любимые комнаты",
+    avoidedRooms: "Избегаемые комнаты",
+    roomToday: "Сегодня",
+    roomWeek: "Последние 7 дней",
+    noRoute: "Данных маршрута пока нет.",
+    noRoomHeatmap: "Данных по комнатам пока нет.",
+    yes: "Да",
+    no: "Нет",
   },
   es: {
     title: "Editor DIVA",
@@ -188,6 +228,7 @@ const PANEL_TEXT = {
     medications: "Tratamientos",
     vaccines: "Vacunas",
     reports: "Informes y calendario",
+    mobility: "Movilidad y habitaciones",
     addMedication: "Añadir medicación",
     editMedication: "Editar medicación",
     remove: "Eliminar",
@@ -268,6 +309,25 @@ const PANEL_TEXT = {
     reportPath: "Ruta",
     generatedAt: "Generado",
     statusLabel: "Estado",
+    walkMap: "Mapa del paseo",
+    roomHeatmap: "Mapa de calor de habitaciones",
+    activeWalk: "Paseo activo",
+    distanceToday: "Distancia hoy",
+    walksToday: "Paseos hoy",
+    routePoints: "Puntos de ruta",
+    currentZone: "Zona actual",
+    currentRoom: "Habitación actual",
+    mapCenter: "Centro del mapa",
+    lastWalk: "Último paseo",
+    routeSummary: "Resumen de ruta",
+    preferredRooms: "Habitaciones preferidas",
+    avoidedRooms: "Habitaciones evitadas",
+    roomToday: "Hoy",
+    roomWeek: "Últimos 7 días",
+    noRoute: "Aún no hay datos de ruta.",
+    noRoomHeatmap: "Aún no hay datos de permanencia por habitación.",
+    yes: "Sí",
+    no: "No",
   },
 };
 
@@ -279,6 +339,17 @@ const escapeHtml = (value) => String(value ?? "")
   .replaceAll(">", "&gt;")
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#39;");
+
+const formatNumber = (value, digits = 1) => {
+  if (value === null || value === undefined || value === "") {
+    return "0";
+  }
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) {
+    return String(value);
+  }
+  return numeric.toFixed(digits);
+};
 
 class DivaEditorPanel extends HTMLElement {
   constructor() {
@@ -778,6 +849,132 @@ class DivaEditorPanel extends HTMLElement {
       </section>`;
   }
 
+  _routeSvg(line) {
+    const points = Array.isArray(line) ? line : [];
+    if (points.length < 2) {
+      return `<div class="empty">${escapeHtml(this.t("noRoute"))}</div>`;
+    }
+    const lats = points.map((item) => Number(item[0]));
+    const lons = points.map((item) => Number(item[1]));
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLon = Math.min(...lons);
+    const maxLon = Math.max(...lons);
+    const width = Math.max(maxLon - minLon, 0.00001);
+    const height = Math.max(maxLat - minLat, 0.00001);
+    const path = points.map(([lat, lon], index) => {
+      const x = 12 + ((Number(lon) - minLon) / width) * 296;
+      const y = 168 - ((Number(lat) - minLat) / height) * 136;
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(" ");
+    const [startLat, startLon] = points[0];
+    const [endLat, endLon] = points[points.length - 1];
+    const startX = 12 + ((Number(startLon) - minLon) / width) * 296;
+    const startY = 168 - ((Number(startLat) - minLat) / height) * 136;
+    const endX = 12 + ((Number(endLon) - minLon) / width) * 296;
+    const endY = 168 - ((Number(endLat) - minLat) / height) * 136;
+    return `
+      <svg class="route-map" viewBox="0 0 320 180" role="img" aria-label="${escapeHtml(this.t("walkMap"))}">
+        <defs>
+          <linearGradient id="divaRouteGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2f7e7b"></stop>
+            <stop offset="100%" stop-color="#d57c44"></stop>
+          </linearGradient>
+        </defs>
+        <rect x="1" y="1" width="318" height="178" rx="18" class="route-map-bg"></rect>
+        <path d="${path}" class="route-line"></path>
+        <circle cx="${startX.toFixed(1)}" cy="${startY.toFixed(1)}" r="6" class="route-start"></circle>
+        <circle cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}" r="6" class="route-end"></circle>
+      </svg>`;
+  }
+
+  _roomRows(rows) {
+    if (!rows.length) {
+      return `<div class="empty">${escapeHtml(this.t("noRoomHeatmap"))}</div>`;
+    }
+    return `
+      <div class="heatmap-rows">
+        ${rows.map((row) => `
+          <div class="heatmap-row">
+            <div class="heatmap-head">
+              <strong>${escapeHtml(row.room_name)}</strong>
+              <span>${escapeHtml(`${formatNumber(row.minutes, 1)} min • ${formatNumber(row.share_pct, 1)}%`)}</span>
+            </div>
+            <div class="heatbar">
+              <div class="heatbar-fill" style="width:${escapeHtml(String(Math.max(6, Math.round(Number(row.intensity || 0) * 100))))}%"></div>
+            </div>
+            <div class="heatmap-meta">${escapeHtml(`${row.blocks} • ${formatNumber(row.hours, 2)} h`)}</div>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  _renderMobilitySection(petId) {
+    const walk = this._sensorAttrs(petId, "walk_distance");
+    const walkToday = this._sensorAttrs(petId, "walk_distance_today");
+    const location = this._findState(petId, "location");
+    const currentRoom = this._sensorAttrs(petId, "current_room");
+    const heatmap = this._sensorAttrs(petId, "room_heatmap");
+    const routeLine = walk.current_route_line?.length ? walk.current_route_line : (walk.last_route_line || []);
+    const mapCenter = walk.map_center || {};
+    const preferred = heatmap.preferred_rooms || currentRoom.preferred_rooms || [];
+    const avoided = heatmap.avoided_rooms || currentRoom.avoided_rooms || [];
+    const hasMapCenter = mapCenter.latitude !== undefined && mapCenter.longitude !== undefined;
+    return `
+      <section class="card card-wide">
+        <div class="section-header">
+          <div>
+            <h2>${escapeHtml(this.t("mobility"))}</h2>
+            <p>${escapeHtml(this.t("currentZone"))}: ${escapeHtml(this._stateValue(petId, "current_zone") || this.t("empty"))} • ${escapeHtml(this.t("currentRoom"))}: ${escapeHtml(this._stateValue(petId, "current_room") || this.t("empty"))}</p>
+          </div>
+        </div>
+        <div class="two-col mobility-grid">
+          <div class="mobility-panel">
+            <h3>${escapeHtml(this.t("walkMap"))}</h3>
+            ${this._routeSvg(routeLine)}
+            <div class="stats-grid">
+              <div class="stat-card"><span>${escapeHtml(this.t("activeWalk"))}</span><strong>${escapeHtml(walk.active_walk ? this.t("yes") : this.t("no"))}</strong></div>
+              <div class="stat-card"><span>${escapeHtml(this.t("distanceToday"))}</span><strong>${escapeHtml(`${formatNumber(this._stateValue(petId, "walk_distance_today"), 2)} km`)}</strong></div>
+              <div class="stat-card"><span>${escapeHtml(this.t("walksToday"))}</span><strong>${escapeHtml(String(walkToday.completed_walks_today || 0))}</strong></div>
+              <div class="stat-card"><span>${escapeHtml(this.t("routePoints"))}</span><strong>${escapeHtml(String(routeLine.length || 0))}</strong></div>
+              <div class="stat-card"><span>${escapeHtml(this.t("mapCenter"))}</span><strong>${escapeHtml(hasMapCenter ? `${formatNumber(mapCenter.latitude, 4)}, ${formatNumber(mapCenter.longitude, 4)}` : this.t("empty"))}</strong></div>
+            </div>
+            <div class="subsection compact">
+              <h3>${escapeHtml(this.t("lastWalk"))}</h3>
+              <ul class="list dense">
+                <li>
+                  <div><strong>${escapeHtml(this.t("routeSummary"))}</strong><span>${escapeHtml(walk.last_walk_route_summary || this.t("empty"))}</span></div>
+                  <span>${escapeHtml(`${formatNumber(walk.last_walk_distance_km, 2)} km • ${formatNumber(walk.last_walk_duration_minutes, 1)} min`)}</span>
+                </li>
+                <li>
+                  <div><strong>${escapeHtml(this.t("currentZone"))}</strong><span>${escapeHtml(location?.attributes?.current_zone || this.t("empty"))}</span></div>
+                  <span>${escapeHtml(location?.attributes?.last_seen_position_at || this.t("empty"))}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="mobility-panel">
+            <h3>${escapeHtml(this.t("roomHeatmap"))}</h3>
+            <div class="stats-grid">
+              <div class="stat-card"><span>${escapeHtml(this.t("roomToday"))}</span><strong>${escapeHtml(`${formatNumber(heatmap.today_total_minutes, 1)} min`)}</strong></div>
+              <div class="stat-card"><span>${escapeHtml(this.t("roomWeek"))}</span><strong>${escapeHtml(`${formatNumber(heatmap.week_total_minutes, 1)} min`)}</strong></div>
+            </div>
+            <div class="chip-row">
+              <span class="chip"><strong>${escapeHtml(this.t("preferredRooms"))}:</strong> ${escapeHtml(preferred.join(", ") || this.t("empty"))}</span>
+              <span class="chip"><strong>${escapeHtml(this.t("avoidedRooms"))}:</strong> ${escapeHtml(avoided.join(", ") || this.t("empty"))}</span>
+            </div>
+            <div class="subsection compact">
+              <h3>${escapeHtml(this.t("roomToday"))}</h3>
+              ${this._roomRows(heatmap.today_rows || [])}
+            </div>
+            <div class="subsection compact">
+              <h3>${escapeHtml(this.t("roomWeek"))}</h3>
+              ${this._roomRows(heatmap.week_rows || [])}
+            </div>
+          </div>
+        </div>
+      </section>`;
+  }
+
   _bindEvents() {
     const root = this.shadowRoot;
     if (!root) {
@@ -983,6 +1180,9 @@ class DivaEditorPanel extends HTMLElement {
           grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
           gap: 16px;
         }
+        .card-wide {
+          grid-column: 1 / -1;
+        }
         .card {
           background: var(--card-background-color);
           border-radius: 20px;
@@ -1056,6 +1256,112 @@ class DivaEditorPanel extends HTMLElement {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
           gap: 16px;
+        }
+        .mobility-grid {
+          align-items: start;
+        }
+        .mobility-panel {
+          display: grid;
+          gap: 14px;
+        }
+        .route-map {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+        .route-map-bg {
+          fill: rgba(127, 127, 127, 0.06);
+          stroke: rgba(127, 127, 127, 0.18);
+          stroke-width: 1.5;
+        }
+        .route-line {
+          fill: none;
+          stroke: url(#divaRouteGradient);
+          stroke-width: 5;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+        .route-start {
+          fill: #2f7e7b;
+          stroke: white;
+          stroke-width: 2;
+        }
+        .route-end {
+          fill: #d57c44;
+          stroke: white;
+          stroke-width: 2;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 10px;
+        }
+        .stat-card {
+          display: grid;
+          gap: 4px;
+          padding: 12px;
+          border-radius: 14px;
+          background: rgba(127, 127, 127, 0.08);
+        }
+        .stat-card span {
+          color: var(--secondary-text-color);
+          font-size: 13px;
+        }
+        .stat-card strong {
+          font-size: 18px;
+        }
+        .chip-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .chip {
+          display: inline-flex;
+          gap: 6px;
+          align-items: center;
+          padding: 8px 10px;
+          border-radius: 999px;
+          background: rgba(127, 127, 127, 0.08);
+          font-size: 13px;
+        }
+        .heatmap-rows {
+          display: grid;
+          gap: 10px;
+        }
+        .heatmap-row {
+          display: grid;
+          gap: 6px;
+          padding: 10px 12px;
+          border-radius: 14px;
+          background: rgba(127, 127, 127, 0.08);
+        }
+        .heatmap-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: center;
+        }
+        .heatbar {
+          height: 10px;
+          background: rgba(127, 127, 127, 0.12);
+          border-radius: 999px;
+          overflow: hidden;
+        }
+        .heatbar-fill {
+          height: 100%;
+          border-radius: 999px;
+          background: linear-gradient(90deg, #2f7e7b, #d57c44);
+        }
+        .heatmap-meta {
+          color: var(--secondary-text-color);
+          font-size: 13px;
+        }
+        .subsection.compact {
+          margin-top: 0;
+        }
+        .list.dense li {
+          gap: 6px;
+          padding: 10px 12px;
         }
         .stat {
           font-size: 42px;
@@ -1134,6 +1440,7 @@ class DivaEditorPanel extends HTMLElement {
             ${this._renderMedicationSection(pet.pet_id)}
             ${this._renderVaccineSection(pet.pet_id)}
             ${this._renderReportsSection(pet.pet_id)}
+            ${this._renderMobilitySection(pet.pet_id)}
           </div>` : `<div class="card empty">${escapeHtml(this.t("noPets"))}</div>`}
       </div>
       ${this._renderDialog()}`;
