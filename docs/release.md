@@ -15,6 +15,15 @@ npm run check
 npm run build
 ```
 
+## Release assets
+
+GitHub releases publish only:
+
+- `diva-hacs.zip`
+- `diva-editor-panel.js`
+
+`package.json` and `package-lock.json` are CI/frontend tooling files and are not included in the HACS zip.
+
 ## GitHub workflows
 
 - `build.yml`

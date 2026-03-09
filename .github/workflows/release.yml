@@ -32,13 +32,23 @@ jobs:
       - name: Build frontend
         run: npm run build
       - name: Package HACS repository
-        run: zip -r diva-hacs.zip custom_components README.md README.ru.md README.es.md CHANGELOG.md LICENSE hacs.json docs mkdocs.yml package.json
+        run: >
+          zip -r diva-hacs.zip
+          custom_components
+          README.md
+          README.ru.md
+          README.es.md
+          CHANGELOG.md
+          LICENSE
+          hacs.json
+          docs
+          mkdocs.yml
+          -x '*/__pycache__/*' '*.pyc' '.pytest_cache/*' '.ruff_cache/*' 'site/*'
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
+          overwrite_files: true
           files: |
             diva-hacs.zip
             custom_components/diva/frontend/diva-editor-panel.js
-            README.md
-            CHANGELOG.md
