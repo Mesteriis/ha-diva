@@ -1,0 +1,771 @@
+feed_pet:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    portion:
+      example: 120
+      selector:
+        number:
+          min: 1
+          max: 1000
+          step: 1
+          unit_of_measurement: g
+          mode: box
+    meal_type:
+      example: wet
+      selector:
+        select:
+          options:
+            - dry
+            - wet
+            - treat
+            - medication
+            - supplement
+    food_name:
+      example: Gastro wet
+      selector:
+        text:
+
+skip_feeding:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+
+delay_feeding:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    minutes:
+      required: true
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 1440
+          step: 1
+          unit_of_measurement: min
+          mode: box
+
+start_walk:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+
+finish_walk:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+
+sync_calendar:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    days:
+      example: 14
+      selector:
+        number:
+          min: 1
+          max: 90
+          step: 1
+          mode: box
+
+resolve_calendar_conflict:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    conflict_id:
+      required: true
+      example: 2a5bc51d3e44f998
+      selector:
+        text:
+    resolution:
+      required: true
+      example: diva_wins
+      selector:
+        select:
+          options:
+            - diva_wins
+            - calendar_wins
+            - dismiss
+    note:
+      example: Keep the DIVA routine as primary
+      selector:
+        text:
+          multiline: true
+
+log_care_action:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    action:
+      required: true
+      example: medication_given
+      selector:
+        text:
+    actor:
+      example: Alex
+      selector:
+        text:
+    category:
+      example: medication
+      selector:
+        text:
+    note:
+      example: Gave evening pill after dinner
+      selector:
+        text:
+          multiline: true
+
+log_medication_dose:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    medication_name:
+      required: true
+      example: Apoquel
+      selector:
+        text:
+    dose:
+      example: 1 tablet
+      selector:
+        text:
+    actor:
+      example: Alex
+      selector:
+        text:
+    note:
+      example: Given after breakfast
+      selector:
+        text:
+          multiline: true
+
+log_symptom:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    symptom_name:
+      required: true
+      example: vomiting
+      selector:
+        text:
+    severity_score:
+      example: 4
+      selector:
+        number:
+          min: 1
+          max: 5
+          step: 0.5
+          mode: box
+    note:
+      example: Vomited once after lunch
+      selector:
+        text:
+          multiline: true
+    source:
+      example: manual
+      selector:
+        text:
+
+report_behavior:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    behavior_type:
+      required: true
+      example: limping
+      selector:
+        text:
+    severity:
+      example: warning
+      selector:
+        select:
+          options:
+            - info
+            - warning
+            - critical
+    message:
+      example: Mild limping on the front left paw
+      selector:
+        text:
+          multiline: true
+    source:
+      example: vision_pipeline
+      selector:
+        text:
+
+observe_behavior:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    behavior_type:
+      required: true
+      example: cough
+      selector:
+        text:
+    severity:
+      example: warning
+      selector:
+        select:
+          options:
+            - info
+            - warning
+            - critical
+    confidence:
+      example: 0.92
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.01
+          mode: box
+    duration_seconds:
+      example: 18
+      selector:
+        number:
+          min: 1
+          max: 86400
+          step: 1
+          mode: box
+    model_name:
+      example: yolo-pet-v2
+      selector:
+        text:
+    message:
+      example: Repeated dry cough detected near the sofa
+      selector:
+        text:
+          multiline: true
+    source:
+      example: vision_pipeline
+      selector:
+        text:
+
+start_recovery_plan:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    recovery_title:
+      required: true
+      example: Post-surgery rest
+      selector:
+        text:
+    expected_days:
+      required: true
+      example: 14
+      selector:
+        number:
+          min: 1
+          max: 365
+          step: 1
+          mode: box
+    note:
+      example: No jumping, short leash walks only
+      selector:
+        text:
+          multiline: true
+
+complete_vaccine_dose:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    vaccine_dose_id:
+      example: don_abrikos_a1b2c3:rabies_review
+      selector:
+        text:
+    vaccine_name:
+      example: Rabies booster review
+      selector:
+        text:
+    note:
+      example: Completed at City Vet
+      selector:
+        text:
+          multiline: true
+
+generate_vet_report:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    report_format:
+      example: pdf
+      selector:
+        select:
+          options:
+            - txt
+            - pdf
+    history_days:
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 365
+          step: 1
+          mode: box
+
+complete_checklist_item:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    checklist_id:
+      required: true
+      example: don_abrikos_a1b2c3:checklist:0
+      selector:
+        text:
+    actor:
+      example: Alex
+      selector:
+        text:
+    note:
+      example: Morning hygiene completed
+      selector:
+        text:
+          multiline: true
+    source:
+      example: manual
+      selector:
+        text:
+
+approve_action:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    approval_id:
+      required: true
+      example: don_abrikos_a1b2c3:approval:1:1773043200
+      selector:
+        text:
+    approved_by:
+      example: Alex
+      selector:
+        text:
+    note:
+      example: Confirmed by household lead
+      selector:
+        text:
+          multiline: true
+
+generate_operations_report:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    report_format:
+      example: pdf
+      selector:
+        select:
+          options:
+            - txt
+            - pdf
+    history_days:
+      example: 7
+      selector:
+        number:
+          min: 1
+          max: 365
+          step: 1
+          mode: box
+
+log_weight:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    weight:
+      required: true
+      example: 12.1
+      selector:
+        number:
+          min: 0.1
+          max: 200
+          step: 0.1
+          unit_of_measurement: kg
+          mode: box
+    actor:
+      example: Alex
+      selector:
+        text:
+    note:
+      example: Morning weigh-in
+      selector:
+        text:
+          multiline: true
+    source:
+      example: manual
+      selector:
+        text:
+
+reschedule_vaccine:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    vaccine_dose_id:
+      example: don_abrikos_a1b2c3:rabies_review
+      selector:
+        text:
+    vaccine_name:
+      example: Rabies booster review
+      selector:
+        text:
+    due_date:
+      required: true
+      selector:
+        date:
+    note:
+      example: Deferred by vet for 2 weeks
+      selector:
+        text:
+          multiline: true
+
+cancel_vaccine:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    vaccine_dose_id:
+      example: don_abrikos_a1b2c3:rabies_review
+      selector:
+        text:
+    vaccine_name:
+      example: Rabies booster review
+      selector:
+        text:
+    reason:
+      example: Already administered outside DIVA
+      selector:
+        text:
+          multiline: true
+
+apply_mode:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    operation_mode:
+      required: true
+      example: vacation
+      selector:
+        select:
+          options:
+            - normal
+            - vacation
+            - illness
+
+add_schedule_exception:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    date:
+      required: true
+      selector:
+        date:
+    action:
+      required: true
+      selector:
+        select:
+          options:
+            - skip
+            - add
+            - move
+    category:
+      required: true
+      selector:
+        select:
+          options:
+            - feed
+            - walk
+            - care
+            - play
+            - medication
+            - grooming
+            - training
+    new_time:
+      selector:
+        time:
+    duration_minutes:
+      selector:
+        number:
+          min: 5
+          max: 240
+          step: 5
+          mode: box
+    label:
+      example: Late walk
+      selector:
+        text:
+    meal_type:
+      selector:
+        select:
+          options:
+            - dry
+            - wet
+            - treat
+            - medication
+            - supplement
+    portion_grams:
+      selector:
+        number:
+          min: 1
+          max: 2000
+          step: 1
+          unit_of_measurement: g
+          mode: box
+    location:
+      example: Park
+      selector:
+        text:
+    notes:
+      example: Shifted because of heat
+      selector:
+        text:
+          multiline: true
+
+upsert_medication_course:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    medication_name:
+      required: true
+      example: Apoquel
+      selector:
+        text:
+    dose:
+      example: 1 tablet
+      selector:
+        text:
+    times:
+      example: 08:00, 20:00
+      selector:
+        text:
+    start_date:
+      selector:
+        date:
+    end_date:
+      selector:
+        date:
+    route:
+      example: oral
+      selector:
+        text:
+    notes:
+      example: Give after breakfast
+      selector:
+        text:
+          multiline: true
+
+remove_medication_course:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    medication_name:
+      required: true
+      example: Apoquel
+      selector:
+        text:
+
+upsert_vaccine_override:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    vaccine_dose_id:
+      example: don_abrikos_a1b2c3:rabies_review
+      selector:
+        text:
+    vaccine_name:
+      example: Rabies booster review
+      selector:
+        text:
+    due_date:
+      selector:
+        date:
+    recurrence_months:
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: box
+    category:
+      selector:
+        select:
+          options:
+            - core
+            - non_core
+            - regional
+            - review
+            - vet
+    notes:
+      example: Move because clinic changed the slot
+      selector:
+        text:
+          multiline: true
+
+remove_vaccine_override:
+  target:
+    device:
+      integration: diva
+  fields:
+    pet_id:
+      advanced: true
+      example: don_abrikos_a1b2c3
+      selector:
+        text:
+    vaccine_dose_id:
+      example: don_abrikos_a1b2c3:rabies_review
+      selector:
+        text:
+    vaccine_name:
+      example: Rabies booster review
+      selector:
+        text:

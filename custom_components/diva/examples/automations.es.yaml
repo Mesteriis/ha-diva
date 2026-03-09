@@ -1,0 +1,56 @@
+- alias: "DIVA -> Herald: recomendaciones de mascota"
+  trigger:
+    - platform: event
+      event_type: diva_recommendation
+  action:
+    - action: herald.notify
+      data:
+        title: "Recomendación de mascota"
+        message: "{{ trigger.event.data.pet_name }}: {{ trigger.event.data.recommendation }}"
+        level: warning
+
+- alias: "DIVA -> Low food intake"
+  trigger:
+    - platform: event
+      event_type: diva_anomaly
+      event_data:
+        type: low_food_intake
+  action:
+    - action: persistent_notification.create
+      data:
+        title: "Anomalía DIVA"
+        message: "{{ trigger.event.data.pet_name }} tiene un consumo de comida bajo ({{ trigger.event.data.severity }})."
+
+- alias: "DIVA -> Recordatorio de cuenco vacío"
+  trigger:
+    - platform: event
+      event_type: diva_event
+      event_data:
+        event: water_empty
+  action:
+    - action: script.notify_family
+      data:
+        message: "{{ trigger.event.data.pet_name }} necesita agua fresca."
+
+- alias: "DIVA -> Routine due -> Herald"
+  trigger:
+    - platform: event
+      event_type: diva_event
+      event_data:
+        event: routine_due
+  action:
+    - action: herald.notify
+      data:
+        title: "Rutina de la mascota"
+        message: "{{ trigger.event.data.pet_name }}: {{ trigger.event.data.summary }} a las {{ trigger.event.data.scheduled_for }}"
+        level: info
+
+- alias: "DIVA -> Sincronización diaria de calendario"
+  trigger:
+    - platform: time
+      at: "04:00:00"
+  action:
+    - action: diva.sync_calendar
+      data:
+        pet_id: don_abrikos_a1b2c3
+        days: 14

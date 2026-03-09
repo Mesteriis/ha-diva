@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+  - type: entities
+    title: Дон Абрикос
+    entities:
+      - entity: sensor.don_abrikos_food_today
+        name: Корм за сегодня
+      - entity: sensor.don_abrikos_water_today
+        name: Вода за сегодня
+      - entity: sensor.don_abrikos_weight
+        name: Вес
+      - entity: sensor.don_abrikos_next_feeding
+        name: Следующее кормление
+      - entity: sensor.don_abrikos_next_walk
+        name: Следующая прогулка
+      - entity: sensor.don_abrikos_stress_score
+        name: Уровень стресса
+      - entity: sensor.don_abrikos_daily_timeline
+        name: Распорядок дня
+      - entity: binary_sensor.don_abrikos_home_alone
+        name: Один дома
+      - entity: sensor.don_abrikos_health_score
+        name: Индекс здоровья
+      - entity: camera.don_abrikos_bowl_monitor
+        name: Монитор миски
+  - type: calendar
+    entities:
+      - calendar.don_abrikos_timeline

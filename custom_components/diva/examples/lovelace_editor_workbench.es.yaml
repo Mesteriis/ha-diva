@@ -1,0 +1,91 @@
+title: DIVA Editor Workbench (ES)
+views:
+  - title: Banco de trabajo
+    path: workbench
+    icon: mdi:toolbox-outline
+    cards:
+      - type: markdown
+        title: Banco de trabajo UI de DIVA
+        content: |
+          Esta vista usa el paquete helper + script de `examples/ui_workbench_package.yaml`.
+
+          Úsala para:
+
+          - completar, reprogramar y cancelar vacunas
+          - registrar dosis de medicación
+          - exportar vet y operations reports
+          - lanzar manualmente la sincronización del calendario
+
+      - type: entities
+        title: Contexto compartido
+        entities:
+          - entity: input_text.diva_ui_pet_id
+          - entity: input_text.diva_ui_actor
+          - entity: input_text.diva_ui_note
+          - entity: input_select.diva_ui_report_format
+          - entity: input_number.diva_ui_report_history_days
+
+      - type: grid
+        title: Editor de vacunas
+        square: false
+        columns: 2
+        cards:
+          - type: entities
+            title: Datos de vacunas
+            entities:
+              - entity: input_text.diva_ui_vaccine_dose_id
+              - entity: input_text.diva_ui_vaccine_name
+              - entity: input_datetime.diva_ui_vaccine_due_date
+          - type: grid
+            title: Acciones de vacunas
+            square: false
+            columns: 3
+            cards:
+              - type: button
+                entity: script.diva_ui_complete_vaccine
+                name: Completar
+              - type: button
+                entity: script.diva_ui_reschedule_vaccine
+                name: Reprogramar
+              - type: button
+                entity: script.diva_ui_cancel_vaccine
+                name: Cancelar
+
+      - type: grid
+        title: Editor de medicación
+        square: false
+        columns: 2
+        cards:
+          - type: entities
+            title: Datos de medicación
+            entities:
+              - entity: input_text.diva_ui_medication_name
+              - entity: input_text.diva_ui_medication_dose
+          - type: button
+            entity: script.diva_ui_log_medication_dose
+            name: Registrar dosis de medicación
+
+      - type: grid
+        title: Exportación de informes
+        square: false
+        columns: 3
+        cards:
+          - type: button
+            entity: script.diva_ui_generate_vet_report
+            name: Exportar vet report
+          - type: button
+            entity: script.diva_ui_generate_operations_report
+            name: Exportar operations report
+          - type: button
+            entity: script.diva_ui_sync_calendar
+            name: Sincronizar calendario
+
+      - type: entities
+        title: Estado en vivo
+        entities:
+          - entity: sensor.don_abrikos_next_vaccine
+          - entity: sensor.don_abrikos_vaccine_status
+          - entity: sensor.don_abrikos_active_medications
+          - entity: sensor.don_abrikos_generated_reports
+          - entity: sensor.don_abrikos_calendar_sync
+          - entity: sensor.don_abrikos_calendar_conflicts

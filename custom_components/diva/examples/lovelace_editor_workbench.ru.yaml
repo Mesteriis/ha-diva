@@ -1,0 +1,91 @@
+title: DIVA Editor Workbench (RU)
+views:
+  - title: Верстак
+    path: workbench
+    icon: mdi:toolbox-outline
+    cards:
+      - type: markdown
+        title: Верстак интерфейса DIVA
+        content: |
+          Эта view использует helper + script package из `examples/ui_workbench_package.yaml`.
+
+          Используйте ее для:
+
+          - завершения, переноса и отмены прививок
+          - регистрации доз лекарств
+          - экспорта vet и operations reports
+          - ручного запуска calendar sync
+
+      - type: entities
+        title: Общий контекст
+        entities:
+          - entity: input_text.diva_ui_pet_id
+          - entity: input_text.diva_ui_actor
+          - entity: input_text.diva_ui_note
+          - entity: input_select.diva_ui_report_format
+          - entity: input_number.diva_ui_report_history_days
+
+      - type: grid
+        title: Редактор прививок
+        square: false
+        columns: 2
+        cards:
+          - type: entities
+            title: Входные данные прививок
+            entities:
+              - entity: input_text.diva_ui_vaccine_dose_id
+              - entity: input_text.diva_ui_vaccine_name
+              - entity: input_datetime.diva_ui_vaccine_due_date
+          - type: grid
+            title: Действия по прививкам
+            square: false
+            columns: 3
+            cards:
+              - type: button
+                entity: script.diva_ui_complete_vaccine
+                name: Завершить
+              - type: button
+                entity: script.diva_ui_reschedule_vaccine
+                name: Перенести
+              - type: button
+                entity: script.diva_ui_cancel_vaccine
+                name: Отменить
+
+      - type: grid
+        title: Редактор лекарств
+        square: false
+        columns: 2
+        cards:
+          - type: entities
+            title: Входные данные лекарств
+            entities:
+              - entity: input_text.diva_ui_medication_name
+              - entity: input_text.diva_ui_medication_dose
+          - type: button
+            entity: script.diva_ui_log_medication_dose
+            name: Отметить прием лекарства
+
+      - type: grid
+        title: Экспорт отчетов
+        square: false
+        columns: 3
+        cards:
+          - type: button
+            entity: script.diva_ui_generate_vet_report
+            name: Экспорт vet report
+          - type: button
+            entity: script.diva_ui_generate_operations_report
+            name: Экспорт operations report
+          - type: button
+            entity: script.diva_ui_sync_calendar
+            name: Синхронизировать календарь
+
+      - type: entities
+        title: Live status
+        entities:
+          - entity: sensor.don_abrikos_next_vaccine
+          - entity: sensor.don_abrikos_vaccine_status
+          - entity: sensor.don_abrikos_active_medications
+          - entity: sensor.don_abrikos_generated_reports
+          - entity: sensor.don_abrikos_calendar_sync
+          - entity: sensor.don_abrikos_calendar_conflicts

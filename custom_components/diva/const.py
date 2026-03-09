@@ -1,0 +1,448 @@
+"""Constants for the DIVA integration."""
+
+from __future__ import annotations
+
+from datetime import timedelta
+
+from homeassistant.const import Platform
+
+DOMAIN = "diva"
+NAME = "DIVA - Pet Guardian"
+INTEGRATION_VERSION = "1.4.0"
+
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.CAMERA,
+    Platform.CALENDAR,
+    Platform.DEVICE_TRACKER,
+]
+
+UPDATE_INTERVAL = timedelta(seconds=60)
+STORAGE_VERSION = 1
+PET_SCHEMA_VERSION = 3
+STORAGE_KEY = f"{DOMAIN}_runtime"
+RUNTIME_JSON_FILENAME = "diva_runtime.json"
+RUNTIME_STORAGE_BACKEND = "json_root"
+RECENT_RECORD_LIMIT = 40
+JOURNAL_RECORD_LIMIT = 80
+DAILY_HISTORY_LIMIT = 30
+CALENDAR_SYNC_DEFAULT_DAYS = 14
+CALENDAR_IMPORT_POLL_INTERVAL = timedelta(minutes=15)
+SCHEDULE_DUE_WINDOW_MINUTES = 15
+VET_REMINDER_WINDOW_MINUTES = 60
+
+ATTR_EVENT = "event"
+ATTR_PET = "pet"
+ATTR_PET_NAME = "pet_name"
+ATTR_RECOMMENDATION = "recommendation"
+ATTR_SEVERITY = "severity"
+ATTR_TIMESTAMP = "timestamp"
+ATTR_TYPE = "type"
+
+EVENT_DIVA_EVENT = "diva_event"
+EVENT_DIVA_ANOMALY = "diva_anomaly"
+EVENT_DIVA_RECOMMENDATION = "diva_recommendation"
+
+SERVICE_FEED_PET = "feed_pet"
+SERVICE_SKIP_FEEDING = "skip_feeding"
+SERVICE_DELAY_FEEDING = "delay_feeding"
+SERVICE_START_WALK = "start_walk"
+SERVICE_FINISH_WALK = "finish_walk"
+SERVICE_SYNC_CALENDAR = "sync_calendar"
+SERVICE_RESOLVE_CALENDAR_CONFLICT = "resolve_calendar_conflict"
+SERVICE_LOG_CARE_ACTION = "log_care_action"
+SERVICE_REPORT_BEHAVIOR = "report_behavior"
+SERVICE_OBSERVE_BEHAVIOR = "observe_behavior"
+SERVICE_COMPLETE_CHECKLIST_ITEM = "complete_checklist_item"
+SERVICE_APPROVE_ACTION = "approve_action"
+SERVICE_GENERATE_OPERATIONS_REPORT = "generate_operations_report"
+SERVICE_APPLY_MODE = "apply_mode"
+SERVICE_ADD_SCHEDULE_EXCEPTION = "add_schedule_exception"
+SERVICE_UPSERT_MEDICATION_COURSE = "upsert_medication_course"
+SERVICE_REMOVE_MEDICATION_COURSE = "remove_medication_course"
+SERVICE_UPSERT_VACCINE_OVERRIDE = "upsert_vaccine_override"
+SERVICE_REMOVE_VACCINE_OVERRIDE = "remove_vaccine_override"
+SERVICE_LOG_MEDICATION_DOSE = "log_medication_dose"
+SERVICE_LOG_SYMPTOM = "log_symptom"
+SERVICE_START_RECOVERY_PLAN = "start_recovery_plan"
+SERVICE_COMPLETE_VACCINE_DOSE = "complete_vaccine_dose"
+SERVICE_GENERATE_VET_REPORT = "generate_vet_report"
+SERVICE_RESCHEDULE_VACCINE = "reschedule_vaccine"
+SERVICE_CANCEL_VACCINE = "cancel_vaccine"
+SERVICE_LOG_WEIGHT = "log_weight"
+
+CONF_BIRTHDATE = "birthdate"
+CONF_BREED = "breed"
+CONF_AVATAR = "avatar"
+CONF_BEHAVIOR_SIGNAL_ENTITY_IDS = "behavior_signal_entity_ids"
+CONF_BLE_TRACKER_ENTITY_ID = "ble_tracker_entity_id"
+CONF_CAMERA_ROOM_NAME = "camera_room_name"
+CONF_CAMERA_ENTITY_ID = "camera_entity_id"
+CONF_CALENDAR_ENTITY_ID = "calendar_entity_id"
+CONF_CALENDAR_LINKS = "calendar_links"
+CONF_CONFLICT_ID = "conflict_id"
+CONF_CAREGIVERS = "caregivers"
+CONF_CAREGIVER = "caregiver"
+CONF_CARE_ROLES = "care_roles"
+CONF_CARE_SCHEDULE = "care_schedule"
+CONF_CARE_ROUTINES = "care_routines"
+CONF_CARE_SHIFTS = "care_shifts"
+CONF_CHECKLIST_FREQUENCY = "frequency"
+CONF_CHECKLIST_ITEMS = "checklist_items"
+CONF_COLD_THRESHOLD_C = "cold_threshold_c"
+CONF_DEFAULT_MANUAL_MODE = "default_manual_mode"
+CONF_DIET_MODE = "diet_mode"
+CONF_DOSE = "dose"
+CONF_END_DATE = "end_date"
+CONF_DUE_DATE = "due_date"
+CONF_EXTERNAL_CALENDAR_ENTITY_IDS = "external_calendar_entity_ids"
+CONF_FEEDING_SCHEDULE = "feeding_schedule"
+CONF_FEEDING_ROUTINES = "feeding_routines"
+CONF_FOOD_BRAND = "food_brand"
+CONF_FOOD_BOWL_AREA = "food_bowl_area"
+CONF_FOOD_CATALOG = "food_catalog"
+CONF_FOOD_KIND = "food_kind"
+CONF_FOOD_NAME = "food_name"
+CONF_FOOD_TRANSITION_PLAN = "food_transition_plan"
+CONF_GPS_TRACKER_ENTITY_ID = "gps_tracker_entity_id"
+CONF_HEAT_THRESHOLD_C = "heat_threshold_c"
+CONF_HOUSEHOLD_PRESENCE_ENTITY_IDS = "household_presence_entity_ids"
+CONF_HUB_NAME = "hub_name"
+CONF_INSURANCE_POLICY = "insurance_policy"
+CONF_BODY_CONDITION_SCORE = "body_condition_score"
+CONF_CHRONIC_CONDITIONS = "chronic_conditions"
+CONF_CONDITION_NAME = "condition_name"
+CONF_CONDITION_STATUS = "condition_status"
+CONF_MICROCHIP_ID = "microchip_id"
+CONF_MEDICAL_COUNTRY = "medical_country"
+CONF_MEDICAL_REGION = "medical_region"
+CONF_MEDICATION_COURSES = "medication_courses"
+CONF_MEDICATION_NAME = "medication_name"
+CONF_MEDICATION_ROUTE = "medication_route"
+CONF_MEDICATION_TIMES = "medication_times"
+CONF_MONITOR_INTERVAL_DAYS = "monitor_interval_days"
+CONF_NAME = "name"
+CONF_NOTES = "notes"
+CONF_OPERATION_MODE = "operation_mode"
+CONF_SOURCE_OF_TRUTH = "source_of_truth"
+CONF_APPROVAL_ID = "approval_id"
+CONF_APPROVAL_REQUIRED_ACTIONS = "approval_required_actions"
+CONF_APPROVED_BY = "approved_by"
+CONF_ACTION_NAME = "action_name"
+CONF_ALLERGEN = "allergen"
+CONF_ALLERGIES = "allergies"
+CONF_PASSPORT_NUMBER = "passport_number"
+CONF_PETS = "pets"
+CONF_PET_ID = "pet_id"
+CONF_PET_SCHEMA = "pet_schema"
+CONF_REGIONAL_POLICY = "regional_policy"
+CONF_PET_SECTION_ANALYTICS = "analytics"
+CONF_PET_SECTION_EXTERNAL_LINKS = "external_links"
+CONF_PET_SECTION_MEDICAL = "medical"
+CONF_PET_SECTION_PLAN = "plan"
+CONF_PET_SECTION_PROFILE = "profile"
+CONF_CONTRAINDICATION = "contraindication"
+CONF_CONTRAINDICATIONS = "contraindications"
+CONF_DIAGNOSED_ON = "diagnosed_on"
+CONF_DIAGNOSES = "diagnoses"
+CONF_DIAGNOSIS_NAME = "diagnosis_name"
+CONF_DIAGNOSIS_STATUS = "diagnosis_status"
+CONF_ROUTINE_EXCEPTIONS = "routine_exceptions"
+CONF_DURATION_HOURS = "duration_hours"
+CONF_HISTORY_CATEGORY = "history_category"
+CONF_HISTORY_DATE = "history_date"
+CONF_HISTORY_TITLE = "history_title"
+CONF_PRIMARY_VET = "primary_vet"
+CONF_ROUTINE_LABEL = "label"
+CONF_ROUTINE_TIME = "time"
+CONF_ROUTINE_DAYS = "days"
+CONF_ROUTINE_DURATION_MINUTES = "duration_minutes"
+CONF_ROUTINE_LOCATION = "location"
+CONF_ROLE = "role"
+CONF_SHIFT_END_TIME = "end_time"
+CONF_SHIFT_START_TIME = "start_time"
+CONF_SHOW_EDITOR_IN_SIDEBAR = "show_editor_in_sidebar"
+CONF_ROOM_NAME = "room_name"
+CONF_ROOM_PRESENCE_SOURCES = "room_presence_sources"
+CONF_ROOM_MATCH_STATE = "match_state"
+CONF_ROOM_SOURCE_PRIORITY = "priority"
+CONF_ROUTINE_CATEGORY = "category"
+CONF_ROUTINE_MEAL_TYPE = "meal_type"
+CONF_ROUTINE_PORTION_GRAMS = "portion_grams"
+CONF_ROUTINE_EXCEPTION_DATE = "date"
+CONF_ROUTINE_EXCEPTION_ACTION = "action"
+CONF_ROUTINE_EXCEPTION_TIME = "new_time"
+CONF_SEVERITY_SCORE = "severity_score"
+CONF_SPECIES = "species"
+CONF_START_DATE = "start_date"
+CONF_SYMPTOM_NAME = "symptom_name"
+CONF_REACTION = "reaction"
+CONF_TO_FOOD_NAME = "to_food_name"
+CONF_TO_PERCENT = "to_percent"
+CONF_TRANSITION_DATE = "transition_date"
+CONF_VET_APPOINTMENTS = "vet_appointments"
+CONF_VET_PHONE = "vet_phone"
+CONF_WALK_SCHEDULE = "walk_schedule"
+CONF_WALK_ROUTINES = "walk_routines"
+CONF_WATER_BOWL_AREA = "water_bowl_area"
+CONF_WEATHER_ENTITY_ID = "weather_entity_id"
+CONF_WEATHER_ADAPTATION = "weather_adaptation"
+CONF_WEIGHT = "weight"
+CONF_REQUIRES_APPROVAL = "requires_approval"
+CONF_ZONE_LATITUDE = "latitude"
+CONF_ZONE_LONGITUDE = "longitude"
+CONF_ZONE_NAME = "zone_name"
+CONF_ZONE_RADIUS_M = "radius_m"
+CONF_SAFE_ZONES = "safe_zones"
+CONF_KCAL_PER_GRAM = "kcal_per_gram"
+CONF_FROM_FOOD_NAME = "from_food_name"
+CONF_FROM_PERCENT = "from_percent"
+CONF_RECOVERY_TITLE = "recovery_title"
+CONF_EXPECTED_DAYS = "expected_days"
+CONF_VACCINE_PROFILE = "vaccine_profile"
+CONF_VACCINE_DOSE_ID = "vaccine_dose_id"
+CONF_VACCINE_NAME = "vaccine_name"
+CONF_VET_OVERRIDE = "vet_override"
+CONF_REPORT_FORMAT = "report_format"
+CONF_HISTORY_DAYS = "history_days"
+CONF_REASON = "reason"
+CONF_RESOLUTION = "resolution"
+CONF_RECURRENCE_MONTHS = "recurrence_months"
+CONF_VACCINE_OVERRIDES = "vaccine_overrides"
+CONF_VACCINE_STATUS = "vaccine_status"
+CONF_WEIGHT_GOAL_MAX_KG = "weight_goal_max_kg"
+CONF_WEIGHT_GOAL_MIN_KG = "weight_goal_min_kg"
+CONF_MEDICAL_HISTORY = "medical_history"
+
+DEFAULT_HUB_NAME = "DIVA Pet Guardian"
+HUB_IDENTIFIER_PREFIX = "hub"
+FRONTEND_STATIC_BASE = "/api/diva_static"
+FRONTEND_MODULE_URL = f"{FRONTEND_STATIC_BASE}/diva-editor-panel.js"
+FRONTEND_PANEL_COMPONENT = "diva-editor-panel"
+FRONTEND_PANEL_URL_PATH = "diva-editor"
+FRONTEND_PANEL_TITLE = "DIVA Editor"
+FRONTEND_PANEL_ICON = "mdi:dog-side"
+DEFAULT_SHOW_EDITOR_IN_SIDEBAR = True
+
+DIET_MODE_PUPPY = "puppy"
+DIET_MODE_ADULT = "adult"
+DIET_MODE_SENIOR = "senior"
+DIET_MODE_DIET = "diet"
+DIET_MODE_MEDICAL = "medical"
+
+DIET_MODES: tuple[str, ...] = (
+    DIET_MODE_PUPPY,
+    DIET_MODE_ADULT,
+    DIET_MODE_SENIOR,
+    DIET_MODE_DIET,
+    DIET_MODE_MEDICAL,
+)
+
+OPERATION_MODE_NORMAL = "normal"
+OPERATION_MODE_VACATION = "vacation"
+OPERATION_MODE_ILLNESS = "illness"
+
+OPERATION_MODES: tuple[str, ...] = (
+    OPERATION_MODE_NORMAL,
+    OPERATION_MODE_VACATION,
+    OPERATION_MODE_ILLNESS,
+)
+
+CALENDAR_SOURCE_OF_TRUTH_DIVA = "diva"
+CALENDAR_SOURCE_OF_TRUTH_CALENDAR = "calendar"
+CALENDAR_SOURCE_OF_TRUTH_MANUAL_REVIEW = "manual_review"
+
+CALENDAR_SOURCE_OF_TRUTH_OPTIONS: tuple[str, ...] = (
+    CALENDAR_SOURCE_OF_TRUTH_DIVA,
+    CALENDAR_SOURCE_OF_TRUTH_CALENDAR,
+    CALENDAR_SOURCE_OF_TRUTH_MANUAL_REVIEW,
+)
+
+CALENDAR_CONFLICT_RESOLUTION_DIVA_WINS = "diva_wins"
+CALENDAR_CONFLICT_RESOLUTION_CALENDAR_WINS = "calendar_wins"
+CALENDAR_CONFLICT_RESOLUTION_DISMISS = "dismiss"
+
+CALENDAR_CONFLICT_RESOLUTION_OPTIONS: tuple[str, ...] = (
+    CALENDAR_CONFLICT_RESOLUTION_DIVA_WINS,
+    CALENDAR_CONFLICT_RESOLUTION_CALENDAR_WINS,
+    CALENDAR_CONFLICT_RESOLUTION_DISMISS,
+)
+
+VACCINE_PROFILE_AUTO = "auto"
+VACCINE_PROFILE_DOG_DEFAULT = "dog_default"
+VACCINE_PROFILE_SPAIN_DOG_DEFAULT = "spain_dog_default"
+
+VACCINE_PROFILE_OPTIONS: tuple[str, ...] = (
+    VACCINE_PROFILE_AUTO,
+    VACCINE_PROFILE_DOG_DEFAULT,
+    VACCINE_PROFILE_SPAIN_DOG_DEFAULT,
+)
+
+CHECKLIST_FREQUENCY_DAILY = "daily"
+CHECKLIST_FREQUENCY_WEEKLY = "weekly"
+
+CHECKLIST_FREQUENCIES: tuple[str, ...] = (
+    CHECKLIST_FREQUENCY_DAILY,
+    CHECKLIST_FREQUENCY_WEEKLY,
+)
+
+APPROVAL_ACTION_FEED = "feed_now"
+APPROVAL_ACTION_MEDICATION = "log_medication_dose"
+APPROVAL_ACTION_VACCINE = "complete_vaccine_dose"
+APPROVAL_ACTION_FINISH_WALK = "finish_walk"
+APPROVAL_ACTION_CARE = "log_care_action"
+APPROVAL_ACTION_CHECKLIST = "complete_checklist_item"
+
+APPROVAL_ACTION_OPTIONS: tuple[str, ...] = (
+    APPROVAL_ACTION_FEED,
+    APPROVAL_ACTION_MEDICATION,
+    APPROVAL_ACTION_VACCINE,
+    APPROVAL_ACTION_FINISH_WALK,
+    APPROVAL_ACTION_CARE,
+    APPROVAL_ACTION_CHECKLIST,
+)
+
+AUTO_OPERATION_MODE_HEAT = "heat"
+AUTO_OPERATION_MODE_WINTER = "winter"
+AUTO_OPERATION_MODE_HOME_ALONE = "home_alone"
+
+ROUTINE_EXCEPTION_SKIP = "skip"
+ROUTINE_EXCEPTION_ADD = "add"
+ROUTINE_EXCEPTION_MOVE = "move"
+
+ROUTINE_EXCEPTION_ACTIONS: tuple[str, ...] = (
+    ROUTINE_EXCEPTION_SKIP,
+    ROUTINE_EXCEPTION_ADD,
+    ROUTINE_EXCEPTION_MOVE,
+)
+
+MEAL_TYPE_DRY = "dry"
+MEAL_TYPE_WET = "wet"
+MEAL_TYPE_TREAT = "treat"
+MEAL_TYPE_MEDICATION = "medication"
+MEAL_TYPE_SUPPLEMENT = "supplement"
+
+MEAL_TYPES: tuple[str, ...] = (
+    MEAL_TYPE_DRY,
+    MEAL_TYPE_WET,
+    MEAL_TYPE_TREAT,
+    MEAL_TYPE_MEDICATION,
+    MEAL_TYPE_SUPPLEMENT,
+)
+
+FOOD_KIND_MAIN = "main_food"
+FOOD_KIND_TREATS = "treats"
+FOOD_KIND_MEDICAL = "medical_food"
+FOOD_KIND_SUPPLEMENTS = "supplements"
+
+FOOD_KINDS: tuple[str, ...] = (
+    FOOD_KIND_MAIN,
+    FOOD_KIND_TREATS,
+    FOOD_KIND_MEDICAL,
+    FOOD_KIND_SUPPLEMENTS,
+)
+
+ROUTINE_TYPE_FEED = "feed"
+ROUTINE_TYPE_WALK = "walk"
+ROUTINE_TYPE_CARE = "care"
+ROUTINE_TYPE_PLAY = "play"
+ROUTINE_TYPE_MEDICATION = "medication"
+ROUTINE_TYPE_GROOMING = "grooming"
+ROUTINE_TYPE_TRAINING = "training"
+ROUTINE_TYPE_VET = "vet"
+
+ROUTINE_CATEGORIES: tuple[str, ...] = (
+    ROUTINE_TYPE_FEED,
+    ROUTINE_TYPE_WALK,
+    ROUTINE_TYPE_CARE,
+    ROUTINE_TYPE_PLAY,
+    ROUTINE_TYPE_MEDICATION,
+    ROUTINE_TYPE_GROOMING,
+    ROUTINE_TYPE_TRAINING,
+)
+
+DEFAULT_DAILY_WATER_PER_KG_ML = 50.0
+DEFAULT_WATER_SIP_ML = 20.0
+DEFAULT_SLEEP_AFTER_MINUTES = 30
+DEFAULT_FOOD_IGNORE_MINUTES = 120
+DEFAULT_INTERACTION_COOLDOWN_MINUTES = 10
+DEFAULT_FEEDING_DURATION_MINUTES = 15
+DEFAULT_WALK_DURATION_MINUTES = 30
+DEFAULT_CARE_DURATION_MINUTES = 20
+DEFAULT_VET_DURATION_MINUTES = 60
+DEFAULT_HEAT_THRESHOLD_C = 28.0
+DEFAULT_COLD_THRESHOLD_C = 2.0
+DEFAULT_KCAL_PER_GRAM = 3.5
+DEFAULT_BODY_CONDITION_SCORE = 5.0
+DEFAULT_MEDICAL_COUNTRY = "ES"
+DEFAULT_MEDICAL_REGION = "es_general"
+DEFAULT_WEIGHT_GOAL_MARGIN_KG = 0.5
+
+DEFAULT_FEEDING_SCHEDULES: dict[str, tuple[str, ...]] = {
+    DIET_MODE_PUPPY: ("07:00", "13:00", "19:00"),
+    DIET_MODE_ADULT: ("08:00", "18:00"),
+    DIET_MODE_SENIOR: ("07:30", "18:00"),
+    DIET_MODE_DIET: ("08:00", "17:30"),
+    DIET_MODE_MEDICAL: ("07:00", "13:00", "19:00"),
+}
+
+ANOMALY_LOW_FOOD = "low_food_intake"
+ANOMALY_LOW_WATER = "low_water_intake"
+ANOMALY_INACTIVITY = "inactivity"
+ANOMALY_SLEEP = "sleep_disruption"
+ANOMALY_STRESS = "stress_elevated"
+ANOMALY_VOMITING = "vomiting_detected"
+ANOMALY_LIMPING = "limping_detected"
+ANOMALY_GAIT = "gait_change_detected"
+ANOMALY_COUGH = "cough_detected"
+ANOMALY_RESTLESSNESS = "restlessness_detected"
+ANOMALY_LONG_INACTIVITY = "long_inactivity"
+ANOMALY_SLEEP_QUALITY = "sleep_quality_drop"
+ANOMALY_BASELINE_DRIFT = "baseline_drift"
+ANOMALY_SUBTLE_BEHAVIOR_SHIFT = "subtle_behavior_shift"
+ANOMALY_MEDICATION_OVERDUE = "medication_overdue"
+ANOMALY_VACCINE_OVERDUE = "vaccine_overdue"
+ANOMALY_SYMPTOM_ESCALATION = "symptom_escalation"
+ANOMALY_RECOVERY_DELAY = "recovery_delay"
+ANOMALY_GEOFENCE_BREACH = "geofence_breach"
+ANOMALY_SEPARATION_STRESS = "separation_stress"
+
+CAMERA_EVENT_EATING = "pet_eating"
+CAMERA_EVENT_DRINKING = "pet_drinking"
+CAMERA_EVENT_FOOD_EMPTY = "food_empty"
+CAMERA_EVENT_WATER_EMPTY = "water_empty"
+CAMERA_EVENT_FOOD_EATEN = "food_eaten"
+CAMERA_EVENT_FOOD_IGNORED = "food_ignored"
+CAMERA_EVENT_FOOD_REFILLED = "food_refilled"
+CAMERA_EVENT_WATER_REFILLED = "water_refilled"
+CAMERA_EVENT_FOOD_SERVED = "food_served"
+CAMERA_EVENT_WALK_STARTED = "walk_started"
+CAMERA_EVENT_WALK_FINISHED = "walk_finished"
+CAMERA_EVENT_ROUTINE_DUE = "routine_due"
+CAMERA_EVENT_VET_DUE = "vet_appointment_due"
+CAMERA_EVENT_CARE_LOGGED = "care_action_logged"
+CAMERA_EVENT_BEHAVIOR_REPORTED = "behavior_reported"
+CAMERA_EVENT_BEHAVIOR_OBSERVED = "behavior_observed"
+CAMERA_EVENT_CALENDAR_SYNCED = "calendar_synced"
+CAMERA_EVENT_CALENDAR_IMPORTED = "calendar_imported"
+CAMERA_EVENT_CALENDAR_CONFLICT = "calendar_conflict"
+CAMERA_EVENT_CALENDAR_CONFLICT_RESOLVED = "calendar_conflict_resolved"
+CAMERA_EVENT_APPROVAL_REQUESTED = "approval_requested"
+CAMERA_EVENT_ACTION_APPROVED = "action_approved"
+CAMERA_EVENT_CHECKLIST_COMPLETED = "checklist_completed"
+CAMERA_EVENT_OPERATIONS_REPORT = "operations_report_generated"
+CAMERA_EVENT_ZONE_CHANGED = "zone_changed"
+CAMERA_EVENT_ROOM_CHANGED = "room_changed"
+CAMERA_EVENT_GEOFENCE_BREACH = "left_safe_zone"
+CAMERA_EVENT_GEOFENCE_CLEARED = "returned_to_safe_zone"
+
+SIGNAL_CAPTURE_FOOD_REFERENCE = "capture_food_reference"
+SIGNAL_CAPTURE_WATER_REFERENCE = "capture_water_reference"
+
+CAMERA_MOTION_THRESHOLD = 0.085
+CAMERA_EMPTY_SIMILARITY_THRESHOLD = 0.72
+CAMERA_TEXTURE_THRESHOLD = 0.10

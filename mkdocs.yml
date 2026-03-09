@@ -1,0 +1,17 @@
+site_name: DIVA - Pet Guardian
+site_description: Home Assistant pet care hub with analytics, routines, and medical workflows
+site_url: https://mesteriis.github.io/ha-diva/
+repo_url: https://github.com/Mesteriis/ha-diva
+repo_name: Mesteriis/ha-diva
+nav:
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Dashboard: dashboard.md
+  - Release: release.md
+theme:
+  name: material
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true

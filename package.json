@@ -1,0 +1,9 @@
+{
+  "name": "ha-diva",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check custom_components/diva/frontend/diva-editor-panel.js",
+    "build": "node --check custom_components/diva/frontend/diva-editor-panel.js"
+  }
+}

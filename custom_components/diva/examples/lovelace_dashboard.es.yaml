@@ -1,0 +1,185 @@
+title: DIVA Operations Center (ES)
+views:
+  - title: Don Abrikos
+    path: don-abrikos
+    icon: mdi:dog
+    cards:
+      - type: picture-entity
+        entity: sensor.don_abrikos_health_score
+        name: Don Abrikos
+        show_state: true
+        show_name: true
+
+      - type: grid
+        title: Overview
+        square: false
+        columns: 4
+        cards:
+          - type: gauge
+            entity: sensor.don_abrikos_health_score
+            name: Salud
+            min: 0
+            max: 100
+            severity:
+              green: 75
+              yellow: 45
+              red: 0
+          - type: gauge
+            entity: sensor.don_abrikos_stress_score
+            name: Estrés
+            min: 0
+            max: 100
+            severity:
+              green: 0
+              yellow: 35
+              red: 65
+          - type: gauge
+            entity: sensor.don_abrikos_checklist_progress
+            name: Checklist
+            min: 0
+            max: 100
+            severity:
+              red: 0
+              yellow: 50
+              green: 85
+          - type: gauge
+            entity: sensor.don_abrikos_calendar_conflicts
+            name: Conflictos de calendario
+            min: 0
+            max: 10
+            severity:
+              green: 0
+              yellow: 1
+              red: 3
+
+      - type: entities
+        title: Rutina y control diario
+        show_header_toggle: false
+        entities:
+          - entity: sensor.don_abrikos_next_feeding
+          - entity: sensor.don_abrikos_next_walk
+          - entity: sensor.don_abrikos_daily_timeline
+          - entity: select.don_abrikos_operation_mode
+          - entity: button.don_abrikos_feed_now
+          - entity: button.don_abrikos_start_walk
+          - entity: button.don_abrikos_finish_walk
+          - entity: button.don_abrikos_sync_calendar
+
+      - type: calendar
+        title: Línea temporal
+        entities:
+          - calendar.don_abrikos_timeline
+
+      - type: history-graph
+        title: Métricas diarias
+        hours_to_show: 72
+        refresh_interval: 60
+        entities:
+          - entity: sensor.don_abrikos_food_today
+          - entity: sensor.don_abrikos_water_today
+          - entity: sensor.don_abrikos_activity_level
+          - entity: sensor.don_abrikos_sleep_duration
+
+      - type: grid
+        title: Área médica
+        square: false
+        columns: 2
+        cards:
+          - type: entities
+            title: Área médica Status
+            entities:
+              - entity: sensor.don_abrikos_next_medication
+              - entity: sensor.don_abrikos_next_vaccine
+              - entity: sensor.don_abrikos_vaccine_status
+              - entity: sensor.don_abrikos_recovery_status
+              - entity: sensor.don_abrikos_symptom_severity
+              - entity: sensor.don_abrikos_body_condition_score
+              - entity: sensor.don_abrikos_weight
+              - entity: sensor.don_abrikos_weight_trend
+          - type: entities
+            title: Área médica Actions
+            entities:
+              - entity: button.don_abrikos_generate_vet_report
+              - entity: sensor.don_abrikos_generated_reports
+              - entity: sensor.don_abrikos_active_medications
+              - entity: sensor.don_abrikos_next_vet_visit
+
+      - type: grid
+        title: Movilidad y comportamiento
+        square: false
+        columns: 2
+        cards:
+          - type: entities
+            title: Ubicación
+            entities:
+              - entity: sensor.don_abrikos_current_zone
+              - entity: sensor.don_abrikos_current_room
+              - entity: sensor.don_abrikos_room_heatmap
+              - entity: sensor.don_abrikos_walk_distance
+              - entity: sensor.don_abrikos_separation_score
+              - entity: binary_sensor.don_abrikos_geofence_breached
+              - entity: binary_sensor.don_abrikos_home_alone
+          - type: history-graph
+            title: Tendencia de comportamiento
+            hours_to_show: 72
+            refresh_interval: 60
+            entities:
+              - entity: sensor.don_abrikos_stress_score
+              - entity: sensor.don_abrikos_sleep_quality
+              - entity: sensor.don_abrikos_baseline_drift
+              - entity: sensor.don_abrikos_symptom_severity
+
+      - type: entities
+        title: Centro de operaciones
+        show_header_toggle: false
+        entities:
+          - entity: sensor.don_abrikos_operations_center
+          - entity: sensor.don_abrikos_current_shift
+          - entity: sensor.don_abrikos_pending_approvals
+          - entity: sensor.don_abrikos_today_vs_baseline
+          - entity: sensor.don_abrikos_weekly_summary
+          - entity: button.don_abrikos_generate_operations_report
+          - entity: sensor.don_abrikos_generated_reports
+
+      - type: entities
+        title: Sincronización de calendario
+        show_header_toggle: false
+        entities:
+          - entity: sensor.don_abrikos_calendar_sync
+          - entity: sensor.don_abrikos_calendar_conflicts
+          - entity: sensor.don_abrikos_generated_reports
+
+      - type: vertical-stack
+        cards:
+          - type: map
+            title: Mapa del paseo
+            entities:
+              - entity: device_tracker.don_abrikos_location
+            hours_to_show: 12
+            dark_mode: false
+
+          - type: entities
+            title: Ruta del paseo
+            show_header_toggle: false
+            entities:
+              - entity: device_tracker.don_abrikos_location
+              - entity: sensor.don_abrikos_walk_distance
+              - entity: sensor.don_abrikos_current_zone
+
+      - type: markdown
+        title: Notas de ruta
+        content: |
+          `device_tracker.don_abrikos_location` lo crea DIVA a partir del GPS vinculado.
+
+          Para cambios de habitación, añade un `history-graph` para `sensor.don_abrikos_current_room`.
+          Duplica esta vista para cada mascota y reemplaza el prefijo `don_abrikos`.
+
+      - type: markdown
+        title: Mapa de calor de habitaciones
+        content: |
+          {% set rows = state_attr('sensor.don_abrikos_room_heatmap', 'today_rows') or [] %}
+          | Habitación | Tiempo | Cuota | Heat |
+          |---|---:|---:|:---:|
+          {% for row in rows %}
+          | {{ row.room_name }} | {{ row.minutes }} min | {{ row.share_pct }}% | {{ row.blocks }} |
+          {% endfor %}

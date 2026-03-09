@@ -1,0 +1,1577 @@
+{
+  "title": "DIVA - Pet Guardian",
+  "config": {
+    "step": {
+      "user": {
+        "title": "DIVA hub",
+        "description": "Create the DIVA hub and add the first pet profile. Additional pets can be managed from Options.",
+        "data": {
+          "name": "Pet name",
+          "species": "Species",
+          "breed": "Breed",
+          "birthdate": "Birthdate",
+          "weight": "Weight",
+          "diet_mode": "Diet mode",
+          "avatar": "Avatar"
+        },
+        "data_description": {
+          "species": "Use a simple species label such as dog or cat.",
+          "weight": "Current body weight in kilograms.",
+          "avatar": "Optional /local path or https URL for the pet photo."
+        },
+        "sections": {
+          "camera_settings": {
+            "name": "Camera monitoring",
+            "description": "Optional camera-based bowl monitoring. Bowl areas use x,y,width,height pixel coordinates.",
+            "data": {
+              "camera_entity_id": "Camera entity",
+              "food_bowl_area": "Food bowl area",
+              "water_bowl_area": "Water bowl area"
+            },
+            "data_description": {
+              "food_bowl_area": "Example: 120,240,80,80",
+              "water_bowl_area": "Example: 320,240,80,80"
+            }
+          },
+          "routine_settings": {
+            "name": "Routine",
+            "description": "Structured weekly planner with mode policies, weather thresholds, and one-off exceptions.",
+            "data": {
+              "feeding_routines": "Feeding routines",
+              "walk_routines": "Walk routines",
+              "care_routines": "Care routines",
+              "routine_exceptions": "Routine exceptions",
+              "default_manual_mode": "Default manual mode",
+              "weather_adaptation": "Weather adaptation",
+              "heat_threshold_c": "Heat threshold",
+              "cold_threshold_c": "Cold threshold"
+            },
+            "data_description": {
+              "feeding_routines": "Add structured meal slots with time, weekdays, meal type, and portion.",
+              "walk_routines": "Add structured walk slots with time, weekdays, duration, and location.",
+              "care_routines": "Add care/play/training/grooming slots without using a text DSL.",
+              "routine_exceptions": "One-off skip, add, or move actions for a specific date."
+            }
+          },
+          "calendar_settings": {
+            "name": "Calendar & Vet",
+            "description": "DIVA creates its own timeline calendar. External calendars can be linked here for Google Calendar or CalDAV-based Apple calendars.",
+            "data": {
+              "vet_appointments": "Vet appointments",
+              "calendar_links": "Linked calendars"
+            },
+            "data_description": {
+              "vet_appointments": "Example: 2026-03-12 14:00|Annual checkup|60|City Vet|vet|Bring passport",
+              "calendar_links": "Each link binds a calendar entity to a source_of_truth policy: diva, calendar, or manual_review."
+            }
+          },
+          "passport_settings": {
+            "name": "Passport",
+            "description": "Pet identity and veterinary passport fields.",
+            "data": {
+              "passport_number": "Passport number",
+              "microchip_id": "Microchip ID",
+              "insurance_policy": "Insurance policy",
+              "primary_vet": "Primary vet",
+              "vet_phone": "Vet phone"
+            }
+          },
+          "tracking_settings": {
+            "name": "Tracking & Presence",
+            "description": "Optional GPS/BLE, household presence, and weather entities for adaptive modes and location context. Configure GPS/BLE entities, safe zones, room sources, and weather context.",
+            "data": {
+              "gps_tracker_entity_id": "GPS tracker",
+              "ble_tracker_entity_id": "BLE tracker",
+              "household_presence_entity_ids": "Household presence entities",
+              "weather_entity_id": "Weather or temperature entity",
+              "safe_zones": "Safe zones",
+              "room_presence_sources": "Room presence sources",
+              "camera_room_name": "Camera room"
+            },
+            "data_description": {
+              "safe_zones": "Named safe zones for geofencing. Each item includes a zone name, latitude, longitude, and radius in meters.",
+              "room_presence_sources": "Map BLE, binary, or sensor entities to room names for indoor location resolution.",
+              "camera_room_name": "Optional room label for the linked camera so bowl activity can help room detection."
+            }
+          },
+          "behavior_settings": {
+            "name": "Behavior Signals",
+            "description": "Optional behavior detection entities and caregiver list. Use this to connect external AI/vision pipelines.",
+            "data": {
+              "behavior_signal_entity_ids": "Behavior signal entities",
+              "caregivers": "Caregivers"
+            },
+            "data_description": {
+              "caregivers": "One caregiver per line or comma-separated."
+            }
+          },
+          "nutrition_settings": {
+            "name": "Nutrition",
+            "description": "Food catalog, transition plan, and calorie density used by nutrition analytics.",
+            "data": {
+              "food_catalog": "Food catalog",
+              "food_transition_plan": "Food transition plan"
+            },
+            "data_description": {
+              "food_catalog": "Track brand, food kind, meal type, and kcal per gram.",
+              "food_transition_plan": "Dated transition steps must sum to 100% between the old and new food."
+            }
+          },
+          "medical_settings": {
+            "name": "Medical",
+            "description": "Vaccination policy, medication courses, chronic conditions, diagnoses, allergies, contraindications, weight goals, and medical history.",
+            "data": {
+              "medical_country": "Medical country",
+              "medical_region": "Medical region",
+              "body_condition_score": "Body condition score",
+              "weight_goal_min_kg": "Weight goal min",
+              "weight_goal_max_kg": "Weight goal max",
+              "medication_courses": "Medication courses",
+              "chronic_conditions": "Chronic conditions",
+              "vaccine_overrides": "Vaccine overrides",
+              "diagnoses": "Diagnoses",
+              "allergies": "Allergies",
+              "contraindications": "Contraindications",
+              "medical_history": "Medical history",
+              "regional_policy": "Regional policy",
+              "vaccine_profile": "Vaccine profile",
+              "vet_override": "Vet override"
+            },
+            "data_description": {
+              "medical_country": "Use an ISO country code such as ES for Spain.",
+              "medical_region": "Optional regional policy key such as es_general or madrid.",
+              "body_condition_score": "BCS scale 1-9, where 4-6 is the usual target range.",
+              "weight_goal_min_kg": "Lower bound of the target body weight range in kilograms.",
+              "weight_goal_max_kg": "Upper bound of the target body weight range in kilograms.",
+              "medication_courses": "Set medication name, dose, schedule times, and course dates.",
+              "chronic_conditions": "Track chronic conditions with monitoring intervals and notes.",
+              "vaccine_overrides": "Add or override vaccine reminders, recurrence, and due dates.",
+              "diagnoses": "Track diagnosed conditions with status, diagnosis date, and notes.",
+              "allergies": "Track allergens, reactions, and handling notes.",
+              "contraindications": "Track activities, drugs, or procedures to avoid and why.",
+              "medical_history": "Store dated medical events such as illness, surgery, or recovery milestones.",
+              "regional_policy": "Regional overlay key such as es_general, madrid, andalucia, galicia, or custom.",
+              "vaccine_profile": "Default vaccine template selection for the pet.",
+              "vet_override": "Allow configured vaccine overrides to replace default generated doses."
+            }
+          },
+          "operations_settings": {
+            "name": "Operations",
+            "description": "Care roles, caregiver shifts, recurring checklists, and approval rules for critical actions.",
+            "data": {
+              "care_roles": "Care roles",
+              "care_shifts": "Care shifts",
+              "checklist_items": "Checklist items",
+              "approval_required_actions": "Approval required actions"
+            },
+            "data_description": {
+              "care_roles": "Assign named caregivers to operational roles such as owner, sitter, or medical lead.",
+              "care_shifts": "Define recurring caregiver shifts with label, time range, weekdays, and optional role.",
+              "checklist_items": "Daily or weekly checklist tasks for grooming, medication, inspection, or training.",
+              "approval_required_actions": "Actions that should be queued for approval instead of executing immediately."
+            }
+          }
+        }
+      },
+      "reconfigure": {
+        "title": "Hub settings",
+        "description": "Update the DIVA hub name.",
+        "data": {
+          "hub_name": "Hub name"
+        }
+      }
+    },
+    "error": {
+      "invalid_weight": "Weight must be greater than zero.",
+      "invalid_bowl_area": "Use x,y,width,height format.",
+      "camera_required": "Select a camera entity when bowl areas are configured.",
+      "invalid_hub_name": "Enter a hub name.",
+      "duplicate_pet": "A pet with the same identity already exists in DIVA.",
+      "invalid_schedule": "Invalid structured schedule or exception entry.",
+      "invalid_mode": "Unsupported operation mode.",
+      "invalid_temperature_window": "Cold threshold must stay below heat threshold.",
+      "invalid_body_condition_score": "Body condition score must be between 1 and 9.",
+      "invalid_weight_goal": "Weight goal min must not exceed weight goal max."
+    },
+    "abort": {
+      "already_configured": "DIVA is already configured.",
+      "entry_not_found": "The selected DIVA entry no longer exists.",
+      "reconfigure_successful": "The DIVA hub was updated successfully.",
+      "single_instance_allowed": "Only one DIVA hub is supported."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage DIVA",
+        "menu_options": {
+          "add_pet": "Add pet",
+          "edit_pet_select": "Edit pet",
+          "remove_pet": "Remove pet",
+          "hub_settings": "Hub settings"
+        }
+      },
+      "hub_settings": {
+        "title": "Hub settings",
+        "description": "Update the DIVA hub metadata.",
+        "data": {
+          "hub_name": "Hub name",
+          "show_editor_in_sidebar": "Show editor in sidebar"
+        },
+        "data_description": {
+          "show_editor_in_sidebar": "Hide the sidebar entry without disabling the DIVA editor route itself."
+        }
+      },
+      "add_pet": {
+        "title": "Add pet",
+        "description": "Create an additional pet profile inside the DIVA hub.",
+        "data": {
+          "name": "Pet name",
+          "species": "Species",
+          "breed": "Breed",
+          "birthdate": "Birthdate",
+          "weight": "Weight",
+          "diet_mode": "Diet mode",
+          "avatar": "Avatar"
+        },
+        "data_description": {
+          "avatar": "Optional /local path or https URL for the pet photo."
+        },
+        "sections": {
+          "camera_settings": {
+            "name": "Camera monitoring",
+            "description": "Optional camera-based bowl monitoring. Bowl areas use x,y,width,height pixel coordinates.",
+            "data": {
+              "camera_entity_id": "Camera entity",
+              "food_bowl_area": "Food bowl area",
+              "water_bowl_area": "Water bowl area"
+            }
+          },
+          "routine_settings": {
+            "name": "Routine",
+            "description": "Structured weekly planner with mode policies, weather thresholds, and one-off exceptions.",
+            "data": {
+              "feeding_routines": "Feeding routines",
+              "walk_routines": "Walk routines",
+              "care_routines": "Care routines",
+              "routine_exceptions": "Routine exceptions",
+              "default_manual_mode": "Default manual mode",
+              "weather_adaptation": "Weather adaptation",
+              "heat_threshold_c": "Heat threshold",
+              "cold_threshold_c": "Cold threshold"
+            },
+            "data_description": {
+              "feeding_routines": "Add structured meal slots with time, weekdays, meal type, and portion.",
+              "walk_routines": "Add structured walk slots with time, weekdays, duration, and location.",
+              "care_routines": "Add care/play/training/grooming slots without using a text DSL.",
+              "routine_exceptions": "One-off skip, add, or move actions for a specific date."
+            }
+          },
+          "calendar_settings": {
+            "name": "Calendar & Vet",
+            "description": "DIVA creates its own timeline calendar. External calendars can be linked here for Google Calendar or CalDAV-based Apple calendars.",
+            "data": {
+              "vet_appointments": "Vet appointments",
+              "calendar_links": "Linked calendars"
+            },
+            "data_description": {
+              "vet_appointments": "Example: 2026-03-12 14:00|Annual checkup|60|City Vet|vet|Bring passport",
+              "calendar_links": "Each link binds a calendar entity to a source_of_truth policy: diva, calendar, or manual_review."
+            }
+          },
+          "passport_settings": {
+            "name": "Passport",
+            "description": "Pet identity and veterinary passport fields.",
+            "data": {
+              "passport_number": "Passport number",
+              "microchip_id": "Microchip ID",
+              "insurance_policy": "Insurance policy",
+              "primary_vet": "Primary vet",
+              "vet_phone": "Vet phone"
+            }
+          },
+          "tracking_settings": {
+            "name": "Tracking & Presence",
+            "description": "Optional GPS/BLE, household presence, and weather entities for adaptive modes and location context. Configure GPS/BLE entities, safe zones, room sources, and weather context.",
+            "data": {
+              "gps_tracker_entity_id": "GPS tracker",
+              "ble_tracker_entity_id": "BLE tracker",
+              "household_presence_entity_ids": "Household presence entities",
+              "weather_entity_id": "Weather or temperature entity",
+              "safe_zones": "Safe zones",
+              "room_presence_sources": "Room presence sources",
+              "camera_room_name": "Camera room"
+            },
+            "data_description": {
+              "safe_zones": "Named safe zones for geofencing. Each item includes a zone name, latitude, longitude, and radius in meters.",
+              "room_presence_sources": "Map BLE, binary, or sensor entities to room names for indoor location resolution.",
+              "camera_room_name": "Optional room label for the linked camera so bowl activity can help room detection."
+            }
+          },
+          "behavior_settings": {
+            "name": "Behavior Signals",
+            "description": "Optional behavior detection entities and caregiver list. Use this to connect external AI/vision pipelines.",
+            "data": {
+              "behavior_signal_entity_ids": "Behavior signal entities",
+              "caregivers": "Caregivers"
+            },
+            "data_description": {
+              "caregivers": "One caregiver per line or comma-separated."
+            }
+          },
+          "nutrition_settings": {
+            "name": "Nutrition",
+            "description": "Food catalog, transition plan, and calorie density used by nutrition analytics.",
+            "data": {
+              "food_catalog": "Food catalog",
+              "food_transition_plan": "Food transition plan"
+            },
+            "data_description": {
+              "food_catalog": "Track brand, food kind, meal type, and kcal per gram.",
+              "food_transition_plan": "Dated transition steps must sum to 100% between the old and new food."
+            }
+          },
+          "medical_settings": {
+            "name": "Medical",
+            "description": "Vaccination policy, medication courses, chronic conditions, diagnoses, allergies, contraindications, weight goals, and medical history.",
+            "data": {
+              "medical_country": "Medical country",
+              "medical_region": "Medical region",
+              "body_condition_score": "Body condition score",
+              "weight_goal_min_kg": "Weight goal min",
+              "weight_goal_max_kg": "Weight goal max",
+              "medication_courses": "Medication courses",
+              "chronic_conditions": "Chronic conditions",
+              "vaccine_overrides": "Vaccine overrides",
+              "diagnoses": "Diagnoses",
+              "allergies": "Allergies",
+              "contraindications": "Contraindications",
+              "medical_history": "Medical history",
+              "regional_policy": "Regional policy",
+              "vaccine_profile": "Vaccine profile",
+              "vet_override": "Vet override"
+            },
+            "data_description": {
+              "medical_country": "Use an ISO country code such as ES for Spain.",
+              "medical_region": "Optional regional policy key such as es_general or madrid.",
+              "body_condition_score": "BCS scale 1-9, where 4-6 is the usual target range.",
+              "weight_goal_min_kg": "Lower bound of the target body weight range in kilograms.",
+              "weight_goal_max_kg": "Upper bound of the target body weight range in kilograms.",
+              "medication_courses": "Set medication name, dose, schedule times, and course dates.",
+              "chronic_conditions": "Track chronic conditions with monitoring intervals and notes.",
+              "vaccine_overrides": "Add or override vaccine reminders, recurrence, and due dates.",
+              "diagnoses": "Track diagnosed conditions with status, diagnosis date, and notes.",
+              "allergies": "Track allergens, reactions, and handling notes.",
+              "contraindications": "Track activities, drugs, or procedures to avoid and why.",
+              "medical_history": "Store dated medical events such as illness, surgery, or recovery milestones.",
+              "regional_policy": "Regional overlay key such as es_general, madrid, andalucia, galicia, or custom.",
+              "vaccine_profile": "Default vaccine template selection for the pet.",
+              "vet_override": "Allow configured vaccine overrides to replace default generated doses."
+            }
+          },
+          "operations_settings": {
+            "name": "Operations",
+            "description": "Care roles, caregiver shifts, recurring checklists, and approval rules for critical actions.",
+            "data": {
+              "care_roles": "Care roles",
+              "care_shifts": "Care shifts",
+              "checklist_items": "Checklist items",
+              "approval_required_actions": "Approval required actions"
+            },
+            "data_description": {
+              "care_roles": "Assign named caregivers to operational roles such as owner, sitter, or medical lead.",
+              "care_shifts": "Define recurring caregiver shifts with label, time range, weekdays, and optional role.",
+              "checklist_items": "Daily or weekly checklist tasks for grooming, medication, inspection, or training.",
+              "approval_required_actions": "Actions that should be queued for approval instead of executing immediately."
+            }
+          }
+        }
+      },
+      "edit_pet_select": {
+        "title": "Edit pet",
+        "description": "Select which pet profile to update.",
+        "data": {
+          "selected_pet": "Pet"
+        }
+      },
+      "edit_pet": {
+        "title": "Edit pet",
+        "description": "Update the selected pet profile.",
+        "data": {
+          "name": "Pet name",
+          "species": "Species",
+          "breed": "Breed",
+          "birthdate": "Birthdate",
+          "weight": "Weight",
+          "diet_mode": "Diet mode",
+          "avatar": "Avatar"
+        },
+        "data_description": {
+          "avatar": "Optional /local path or https URL for the pet photo."
+        },
+        "sections": {
+          "camera_settings": {
+            "name": "Camera monitoring",
+            "description": "Optional camera-based bowl monitoring. Bowl areas use x,y,width,height pixel coordinates.",
+            "data": {
+              "camera_entity_id": "Camera entity",
+              "food_bowl_area": "Food bowl area",
+              "water_bowl_area": "Water bowl area"
+            }
+          },
+          "routine_settings": {
+            "name": "Routine",
+            "description": "Structured weekly planner with mode policies, weather thresholds, and one-off exceptions.",
+            "data": {
+              "feeding_routines": "Feeding routines",
+              "walk_routines": "Walk routines",
+              "care_routines": "Care routines",
+              "routine_exceptions": "Routine exceptions",
+              "default_manual_mode": "Default manual mode",
+              "weather_adaptation": "Weather adaptation",
+              "heat_threshold_c": "Heat threshold",
+              "cold_threshold_c": "Cold threshold"
+            },
+            "data_description": {
+              "feeding_routines": "Add structured meal slots with time, weekdays, meal type, and portion.",
+              "walk_routines": "Add structured walk slots with time, weekdays, duration, and location.",
+              "care_routines": "Add care/play/training/grooming slots without using a text DSL.",
+              "routine_exceptions": "One-off skip, add, or move actions for a specific date."
+            }
+          },
+          "calendar_settings": {
+            "name": "Calendar & Vet",
+            "description": "DIVA creates its own timeline calendar. External calendars can be linked here for Google Calendar or CalDAV-based Apple calendars.",
+            "data": {
+              "vet_appointments": "Vet appointments",
+              "calendar_links": "Linked calendars"
+            },
+            "data_description": {
+              "vet_appointments": "Example: 2026-03-12 14:00|Annual checkup|60|City Vet|vet|Bring passport",
+              "calendar_links": "Each link binds a calendar entity to a source_of_truth policy: diva, calendar, or manual_review."
+            }
+          },
+          "passport_settings": {
+            "name": "Passport",
+            "description": "Pet identity and veterinary passport fields.",
+            "data": {
+              "passport_number": "Passport number",
+              "microchip_id": "Microchip ID",
+              "insurance_policy": "Insurance policy",
+              "primary_vet": "Primary vet",
+              "vet_phone": "Vet phone"
+            }
+          },
+          "tracking_settings": {
+            "name": "Tracking & Presence",
+            "description": "Optional GPS/BLE, household presence, and weather entities for adaptive modes and location context. Configure GPS/BLE entities, safe zones, room sources, and weather context.",
+            "data": {
+              "gps_tracker_entity_id": "GPS tracker",
+              "ble_tracker_entity_id": "BLE tracker",
+              "household_presence_entity_ids": "Household presence entities",
+              "weather_entity_id": "Weather or temperature entity",
+              "safe_zones": "Safe zones",
+              "room_presence_sources": "Room presence sources",
+              "camera_room_name": "Camera room"
+            },
+            "data_description": {
+              "safe_zones": "Named safe zones for geofencing. Each item includes a zone name, latitude, longitude, and radius in meters.",
+              "room_presence_sources": "Map BLE, binary, or sensor entities to room names for indoor location resolution.",
+              "camera_room_name": "Optional room label for the linked camera so bowl activity can help room detection."
+            }
+          },
+          "behavior_settings": {
+            "name": "Behavior Signals",
+            "description": "Optional behavior detection entities and caregiver list. Use this to connect external AI/vision pipelines.",
+            "data": {
+              "behavior_signal_entity_ids": "Behavior signal entities",
+              "caregivers": "Caregivers"
+            },
+            "data_description": {
+              "caregivers": "One caregiver per line or comma-separated."
+            }
+          },
+          "nutrition_settings": {
+            "name": "Nutrition",
+            "description": "Food catalog, transition plan, and calorie density used by nutrition analytics.",
+            "data": {
+              "food_catalog": "Food catalog",
+              "food_transition_plan": "Food transition plan"
+            },
+            "data_description": {
+              "food_catalog": "Track brand, food kind, meal type, and kcal per gram.",
+              "food_transition_plan": "Dated transition steps must sum to 100% between the old and new food."
+            }
+          },
+          "medical_settings": {
+            "name": "Medical",
+            "description": "Vaccination policy, medication courses, chronic conditions, diagnoses, allergies, contraindications, weight goals, and medical history.",
+            "data": {
+              "medical_country": "Medical country",
+              "medical_region": "Medical region",
+              "body_condition_score": "Body condition score",
+              "weight_goal_min_kg": "Weight goal min",
+              "weight_goal_max_kg": "Weight goal max",
+              "medication_courses": "Medication courses",
+              "chronic_conditions": "Chronic conditions",
+              "vaccine_overrides": "Vaccine overrides",
+              "diagnoses": "Diagnoses",
+              "allergies": "Allergies",
+              "contraindications": "Contraindications",
+              "medical_history": "Medical history",
+              "regional_policy": "Regional policy",
+              "vaccine_profile": "Vaccine profile",
+              "vet_override": "Vet override"
+            },
+            "data_description": {
+              "medical_country": "Use an ISO country code such as ES for Spain.",
+              "medical_region": "Optional regional policy key such as es_general or madrid.",
+              "body_condition_score": "BCS scale 1-9, where 4-6 is the usual target range.",
+              "weight_goal_min_kg": "Lower bound of the target body weight range in kilograms.",
+              "weight_goal_max_kg": "Upper bound of the target body weight range in kilograms.",
+              "medication_courses": "Set medication name, dose, schedule times, and course dates.",
+              "chronic_conditions": "Track chronic conditions with monitoring intervals and notes.",
+              "vaccine_overrides": "Add or override vaccine reminders, recurrence, and due dates.",
+              "diagnoses": "Track diagnosed conditions with status, diagnosis date, and notes.",
+              "allergies": "Track allergens, reactions, and handling notes.",
+              "contraindications": "Track activities, drugs, or procedures to avoid and why.",
+              "medical_history": "Store dated medical events such as illness, surgery, or recovery milestones.",
+              "regional_policy": "Regional overlay key such as es_general, madrid, andalucia, galicia, or custom.",
+              "vaccine_profile": "Default vaccine template selection for the pet.",
+              "vet_override": "Allow configured vaccine overrides to replace default generated doses."
+            }
+          },
+          "operations_settings": {
+            "name": "Operations",
+            "description": "Care roles, caregiver shifts, recurring checklists, and approval rules for critical actions.",
+            "data": {
+              "care_roles": "Care roles",
+              "care_shifts": "Care shifts",
+              "checklist_items": "Checklist items",
+              "approval_required_actions": "Approval required actions"
+            },
+            "data_description": {
+              "care_roles": "Assign named caregivers to operational roles such as owner, sitter, or medical lead.",
+              "care_shifts": "Define recurring caregiver shifts with label, time range, weekdays, and optional role.",
+              "checklist_items": "Daily or weekly checklist tasks for grooming, medication, inspection, or training.",
+              "approval_required_actions": "Actions that should be queued for approval instead of executing immediately."
+            }
+          }
+        }
+      },
+      "remove_pet": {
+        "title": "Remove pet",
+        "description": "Select which pet profile to remove from DIVA.",
+        "data": {
+          "selected_pet": "Pet"
+        }
+      },
+      "remove_pet_confirm": {
+        "title": "Remove pet",
+        "description": "Are you sure you want to remove {pet_name}?",
+        "data": {
+          "confirm": "Confirm removal"
+        }
+      }
+    },
+    "error": {
+      "invalid_weight": "Weight must be greater than zero.",
+      "invalid_bowl_area": "Use x,y,width,height format.",
+      "camera_required": "Select a camera entity when bowl areas are configured.",
+      "invalid_hub_name": "Enter a hub name.",
+      "duplicate_pet": "A pet with the same identity already exists in DIVA.",
+      "invalid_schedule": "Invalid schedule format. Check the examples in the section description.",
+      "invalid_mode": "Unsupported operation mode.",
+      "invalid_temperature_window": "Cold threshold must stay below heat threshold."
+    },
+    "abort": {
+      "no_pets": "No pets are configured.",
+      "pet_not_found": "The selected pet no longer exists.",
+      "not_confirmed": "Pet removal was not confirmed.",
+      "cannot_remove_last_pet": "The last pet cannot be removed from the DIVA hub."
+    }
+  },
+  "selector": {
+    "diet_mode": {
+      "options": {
+        "puppy": "Puppy",
+        "adult": "Adult",
+        "senior": "Senior",
+        "diet": "Diet",
+        "medical": "Medical"
+      }
+    },
+    "operation_mode": {
+      "options": {
+        "normal": "Normal",
+        "vacation": "Vacation",
+        "illness": "Illness"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "food_today": {
+        "name": "Food today"
+      },
+      "water_today": {
+        "name": "Water today"
+      },
+      "weight": {
+        "name": "Weight"
+      },
+      "last_feeding": {
+        "name": "Last feeding"
+      },
+      "next_feeding": {
+        "name": "Next feeding"
+      },
+      "last_seen_eating": {
+        "name": "Last seen eating"
+      },
+      "activity_level": {
+        "name": "Activity level"
+      },
+      "sleep_duration": {
+        "name": "Sleep duration"
+      },
+      "health_score": {
+        "name": "Health score"
+      },
+      "recommended_food_portion": {
+        "name": "Recommended food portion"
+      },
+      "next_walk": {
+        "name": "Next walk"
+      },
+      "next_vet_visit": {
+        "name": "Next vet visit"
+      },
+      "stress_score": {
+        "name": "Stress score"
+      },
+      "daily_timeline": {
+        "name": "Daily timeline"
+      },
+      "current_shift": {
+        "name": "Current shift"
+      },
+      "checklist_progress": {
+        "name": "Checklist progress"
+      },
+      "pending_approvals": {
+        "name": "Pending approvals"
+      },
+      "today_vs_baseline": {
+        "name": "Today vs baseline"
+      },
+      "weekly_summary": {
+        "name": "Weekly summary"
+      },
+      "operations_center": {
+        "name": "Operations center"
+      },
+      "calendar_sync": {
+        "name": "Calendar sync"
+      },
+      "calendar_conflicts": {
+        "name": "Calendar conflicts"
+      },
+      "generated_reports": {
+        "name": "Generated reports"
+      },
+      "calories_consumed_today": {
+        "name": "Calories consumed today"
+      },
+      "feeding_quality_score": {
+        "name": "Feeding quality score"
+      },
+      "next_medication": {
+        "name": "Next medication"
+      },
+      "next_vaccine": {
+        "name": "Next vaccine"
+      },
+      "active_medications": {
+        "name": "Active medications"
+      },
+      "recovery_status": {
+        "name": "Recovery status"
+      },
+      "body_condition_score": {
+        "name": "Body condition score"
+      },
+      "symptom_severity": {
+        "name": "Symptom severity"
+      },
+      "weight_trend": {
+        "name": "Weight trend"
+      },
+      "vaccine_status": {
+        "name": "Vaccine status"
+      },
+      "walk_distance": {
+        "name": "Walk distance"
+      },
+      "separation_score": {
+        "name": "Separation score"
+      },
+      "current_zone": {
+        "name": "Current zone"
+      },
+      "current_room": {
+        "name": "Current room"
+      },
+      "room_heatmap": {
+        "name": "Room heatmap"
+      },
+      "sleep_quality": {
+        "name": "Sleep quality"
+      },
+      "inactivity_duration": {
+        "name": "Inactivity duration"
+      },
+      "baseline_drift": {
+        "name": "Baseline drift"
+      },
+      "behavior_profile": {
+        "name": "Behavior profile"
+      },
+      "walk_distance_today": {
+        "name": "Walk distance today"
+      },
+      "separation_risk": {
+        "name": "Separation risk"
+      },
+      "recovery_progress": {
+        "name": "Recovery progress"
+      },
+      "symptom_burden": {
+        "name": "Symptom burden"
+      },
+      "checklist_completion": {
+        "name": "Checklist completion"
+      },
+      "room_preference": {
+        "name": "Room preference"
+      }
+    },
+    "binary_sensor": {
+      "hungry": {
+        "name": "Hungry"
+      },
+      "needs_walk": {
+        "name": "Needs walk"
+      },
+      "food_bowl_empty": {
+        "name": "Food bowl empty"
+      },
+      "water_bowl_empty": {
+        "name": "Water bowl empty"
+      },
+      "sleeping": {
+        "name": "Sleeping"
+      },
+      "anomaly_detected": {
+        "name": "Anomaly detected"
+      },
+      "home_alone": {
+        "name": "Home alone"
+      },
+      "geofence_breached": {
+        "name": "Geofence breached"
+      }
+    },
+    "button": {
+      "feed_now": {
+        "name": "Feed now"
+      },
+      "refill_food": {
+        "name": "Refill food"
+      },
+      "refill_water": {
+        "name": "Refill water"
+      },
+      "start_walk": {
+        "name": "Start walk"
+      },
+      "finish_walk": {
+        "name": "Finish walk"
+      },
+      "sync_calendar": {
+        "name": "Sync calendar"
+      },
+      "generate_vet_report": {
+        "name": "Generate vet report"
+      },
+      "generate_operations_report": {
+        "name": "Generate operations report"
+      }
+    },
+    "number": {
+      "food_portion": {
+        "name": "Food portion"
+      },
+      "daily_calories": {
+        "name": "Daily calories"
+      },
+      "weight_goal_min": {
+        "name": "Weight goal min"
+      },
+      "weight_goal_max": {
+        "name": "Weight goal max"
+      }
+    },
+    "select": {
+      "diet_mode": {
+        "name": "Diet mode"
+      },
+      "operation_mode": {
+        "name": "Operation mode"
+      }
+    },
+    "camera": {
+      "monitor": {
+        "name": "Bowl monitor"
+      }
+    },
+    "device_tracker": {
+      "pet_location": {
+        "name": "Location"
+      }
+    },
+    "calendar": {
+      "timeline": {
+        "name": "Timeline"
+      }
+    }
+  },
+  "services": {
+    "feed_pet": {
+      "name": "Feed pet",
+      "description": "Register an immediate feeding for the selected DIVA pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "portion": {
+          "name": "Portion",
+          "description": "Optional portion override in grams."
+        },
+        "meal_type": {
+          "name": "Meal type",
+          "description": "Optional dry, wet, treat, medication, or supplement override."
+        },
+        "food_name": {
+          "name": "Food name",
+          "description": "Optional food catalog item name."
+        }
+      }
+    },
+    "skip_feeding": {
+      "name": "Skip feeding",
+      "description": "Skip the current feeding window for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        }
+      }
+    },
+    "delay_feeding": {
+      "name": "Delay feeding",
+      "description": "Delay the next feeding window for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Delay duration in minutes."
+        }
+      }
+    },
+    "start_walk": {
+      "name": "Start walk",
+      "description": "Start a walk session for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        }
+      }
+    },
+    "finish_walk": {
+      "name": "Finish walk",
+      "description": "Finish a walk session for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        }
+      }
+    },
+    "sync_calendar": {
+      "name": "Sync calendar",
+      "description": "Run bidirectional reconcile sync with linked external calendars using each calendar source_of_truth policy.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "days": {
+          "name": "Days",
+          "description": "How many upcoming days to sync."
+        }
+      }
+    },
+    "resolve_calendar_conflict": {
+      "name": "Resolve calendar conflict",
+      "description": "Apply a manual resolution for a DIVA calendar sync conflict.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "conflict_id": {
+          "name": "Conflict ID",
+          "description": "Conflict identifier from the DIVA calendar_conflicts sensor."
+        },
+        "resolution": {
+          "name": "Resolution",
+          "description": "Choose diva_wins, calendar_wins, or dismiss."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional operator note stored with the resolution."
+        }
+      }
+    },
+    "log_care_action": {
+      "name": "Log care action",
+      "description": "Write a care journal entry for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "action": {
+          "name": "Action",
+          "description": "Action slug such as medication_given or grooming."
+        },
+        "actor": {
+          "name": "Actor",
+          "description": "Optional caregiver name."
+        },
+        "category": {
+          "name": "Category",
+          "description": "Care category such as care, medication, play, or grooming."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional free-form note."
+        }
+      }
+    },
+    "report_behavior": {
+      "name": "Report behavior",
+      "description": "Report a manual or external AI behavior issue such as limping or vomiting.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "behavior_type": {
+          "name": "Behavior type",
+          "description": "Examples: limping, vomiting, gait_change_detected."
+        },
+        "severity": {
+          "name": "Severity",
+          "description": "info, warning, or critical."
+        },
+        "message": {
+          "name": "Message",
+          "description": "Optional human-readable description."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Source system such as manual or vision_pipeline."
+        }
+      }
+    },
+    "apply_mode": {
+      "name": "Apply mode",
+      "description": "Set the active manual operation mode for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "operation_mode": {
+          "name": "Operation mode",
+          "description": "normal, vacation, or illness."
+        }
+      }
+    },
+    "add_schedule_exception": {
+      "name": "Add schedule exception",
+      "description": "Create a one-off skip, add, or move action for the pet routine.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "date": {
+          "name": "Date",
+          "description": "Date of the one-off exception."
+        },
+        "action": {
+          "name": "Action",
+          "description": "skip, add, or move."
+        },
+        "category": {
+          "name": "Category",
+          "description": "feed, walk, care, play, medication, grooming, or training."
+        },
+        "new_time": {
+          "name": "New time",
+          "description": "Required for add and move exceptions."
+        },
+        "duration_minutes": {
+          "name": "Duration",
+          "description": "Optional duration override in minutes."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Optional title for the one-off event."
+        },
+        "meal_type": {
+          "name": "Meal type",
+          "description": "Optional meal type for feed exceptions."
+        },
+        "portion_grams": {
+          "name": "Portion",
+          "description": "Optional portion override in grams."
+        },
+        "location": {
+          "name": "Location",
+          "description": "Optional location."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Optional free-form note."
+        }
+      }
+    },
+    "log_medication_dose": {
+      "name": "Log medication dose",
+      "description": "Record that a medication dose was given to the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "medication_name": {
+          "name": "Medication name",
+          "description": "Configured medication name."
+        },
+        "dose": {
+          "name": "Dose",
+          "description": "Optional dose override such as 1 tablet."
+        },
+        "actor": {
+          "name": "Actor",
+          "description": "Optional caregiver name."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional free-form note."
+        }
+      }
+    },
+    "log_symptom": {
+      "name": "Log symptom",
+      "description": "Record a symptom observation for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "symptom_name": {
+          "name": "Symptom",
+          "description": "Symptom label such as vomiting or cough."
+        },
+        "severity_score": {
+          "name": "Severity",
+          "description": "Severity score from 1 to 5."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional free-form note."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Source system such as manual or vision_pipeline."
+        },
+        "duration_hours": {
+          "name": "Duration (hours)",
+          "description": "Optional duration of the symptom episode in hours."
+        }
+      }
+    },
+    "start_recovery_plan": {
+      "name": "Start recovery plan",
+      "description": "Start a dated recovery tracking plan for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "recovery_title": {
+          "name": "Recovery title",
+          "description": "Short recovery label."
+        },
+        "expected_days": {
+          "name": "Expected days",
+          "description": "Expected recovery duration in days."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional recovery instructions or restrictions."
+        }
+      }
+    },
+    "complete_vaccine_dose": {
+      "name": "Complete vaccine dose",
+      "description": "Mark a vaccine dose or vaccine review as completed.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "vaccine_dose_id": {
+          "name": "Vaccine dose ID",
+          "description": "Specific DIVA vaccine dose id."
+        },
+        "vaccine_name": {
+          "name": "Vaccine name",
+          "description": "Fallback vaccine label if the dose id is unknown."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional completion note."
+        }
+      }
+    },
+    "generate_vet_report": {
+      "name": "Generate vet report",
+      "description": "Generate a vet summary file for automation handoff, including Telegram via Home Assistant.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "report_format": {
+          "name": "Report format",
+          "description": "txt or pdf."
+        },
+        "history_days": {
+          "name": "History days",
+          "description": "How many recent days to include in the summary."
+        }
+      }
+    },
+    "complete_checklist_item": {
+      "name": "Complete checklist item",
+      "description": "Mark a daily or weekly checklist task as completed for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "checklist_id": {
+          "name": "Checklist ID",
+          "description": "Specific DIVA checklist item identifier."
+        },
+        "actor": {
+          "name": "Actor",
+          "description": "Optional caregiver name."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional completion note."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Source system such as manual or dashboard."
+        }
+      }
+    },
+    "approve_action": {
+      "name": "Approve action",
+      "description": "Approve and execute a queued critical action for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier. Not required when approval_id already contains it."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "approval_id": {
+          "name": "Approval ID",
+          "description": "Specific DIVA approval queue identifier."
+        },
+        "approved_by": {
+          "name": "Approved by",
+          "description": "Optional approver name."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional approval note."
+        }
+      }
+    },
+    "generate_operations_report": {
+      "name": "Generate operations report",
+      "description": "Generate an operations summary file for checklist, shift, audit, and approval workflows.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "report_format": {
+          "name": "Report format",
+          "description": "txt or pdf."
+        },
+        "history_days": {
+          "name": "History days",
+          "description": "How many recent days to include in the summary."
+        }
+      }
+    },
+    "log_weight": {
+      "name": "Log weight",
+      "description": "Record a new weight measurement for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "weight": {
+          "name": "Weight",
+          "description": "Measured body weight in kilograms."
+        },
+        "actor": {
+          "name": "Actor",
+          "description": "Optional caregiver name."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional weigh-in note."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Source system such as manual or scale."
+        }
+      }
+    },
+    "reschedule_vaccine": {
+      "name": "Reschedule vaccine",
+      "description": "Move a vaccine reminder to a new due date.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "vaccine_dose_id": {
+          "name": "Vaccine dose ID",
+          "description": "Specific DIVA vaccine dose id."
+        },
+        "vaccine_name": {
+          "name": "Vaccine name",
+          "description": "Fallback vaccine label when the dose id is unknown."
+        },
+        "due_date": {
+          "name": "Due date",
+          "description": "New target date for the vaccine reminder."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional explanation for the reschedule."
+        }
+      }
+    },
+    "cancel_vaccine": {
+      "name": "Cancel vaccine",
+      "description": "Cancel a vaccine reminder for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "vaccine_dose_id": {
+          "name": "Vaccine dose ID",
+          "description": "Specific DIVA vaccine dose id."
+        },
+        "vaccine_name": {
+          "name": "Vaccine name",
+          "description": "Fallback vaccine label when the dose id is unknown."
+        },
+        "reason": {
+          "name": "Reason",
+          "description": "Optional cancellation reason."
+        }
+      }
+    },
+    "observe_behavior": {
+      "name": "Observe behavior",
+      "description": "Record an external AI, camera, BLE, or sensor behavior observation for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "behavior_type": {
+          "name": "Behavior type",
+          "description": "Examples: cough, restlessness, limping, vomiting."
+        },
+        "severity": {
+          "name": "Severity",
+          "description": "info, warning, or critical."
+        },
+        "confidence": {
+          "name": "Confidence",
+          "description": "Confidence score from 0 to 1."
+        },
+        "duration_seconds": {
+          "name": "Duration",
+          "description": "Optional observed duration in seconds."
+        },
+        "model_name": {
+          "name": "Model name",
+          "description": "Optional upstream model or detector name."
+        },
+        "message": {
+          "name": "Message",
+          "description": "Optional human-readable summary."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Source system such as vision_pipeline, ble, or manual."
+        }
+      }
+    },
+    "upsert_medication_course": {
+      "name": "Upsert medication course",
+      "description": "Create or update a configured medication course for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "medication_name": {
+          "name": "Medication name",
+          "description": "Stable medication course name."
+        },
+        "dose": {
+          "name": "Dose",
+          "description": "Dose label such as 1 tablet or 5 ml."
+        },
+        "times": {
+          "name": "Times",
+          "description": "Comma-separated administration times in 24h format."
+        },
+        "start_date": {
+          "name": "Start date",
+          "description": "Course start date in YYYY-MM-DD format."
+        },
+        "end_date": {
+          "name": "End date",
+          "description": "Optional course end date in YYYY-MM-DD format."
+        },
+        "route": {
+          "name": "Route",
+          "description": "Optional route such as oral or topical."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Optional course notes."
+        }
+      }
+    },
+    "remove_medication_course": {
+      "name": "Remove medication course",
+      "description": "Remove a configured medication course from the selected pet profile.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "medication_name": {
+          "name": "Medication name",
+          "description": "Medication course name to remove."
+        }
+      }
+    },
+    "upsert_vaccine_override": {
+      "name": "Upsert vaccine override",
+      "description": "Create or update a vaccine schedule override for the selected pet.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "vaccine_dose_id": {
+          "name": "Vaccine dose ID",
+          "description": "Specific DIVA vaccine dose id to override."
+        },
+        "vaccine_name": {
+          "name": "Vaccine name",
+          "description": "Fallback vaccine name when the dose id is not known yet."
+        },
+        "due_date": {
+          "name": "Due date",
+          "description": "Override due date in YYYY-MM-DD format."
+        },
+        "recurrence_months": {
+          "name": "Recurrence months",
+          "description": "Optional recurring interval in months."
+        },
+        "category": {
+          "name": "Category",
+          "description": "Optional category such as core, regional, or review."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Optional override note."
+        }
+      }
+    },
+    "remove_vaccine_override": {
+      "name": "Remove vaccine override",
+      "description": "Remove a configured vaccine override from the selected pet profile.",
+      "fields": {
+        "pet_id": {
+          "name": "Pet ID",
+          "description": "Optional DIVA pet identifier."
+        },
+        "device_id": {
+          "name": "Device",
+          "description": "Optional DIVA pet device target."
+        },
+        "vaccine_dose_id": {
+          "name": "Vaccine dose ID",
+          "description": "Specific override id to remove."
+        },
+        "vaccine_name": {
+          "name": "Vaccine name",
+          "description": "Fallback override label if the dose id is unknown."
+        }
+      }
+    }
+  }
+}

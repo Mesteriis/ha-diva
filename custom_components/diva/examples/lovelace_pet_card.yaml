@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+  - type: entities
+    title: Don Abrikos
+    entities:
+      - entity: sensor.don_abrikos_food_today
+        name: Food today
+      - entity: sensor.don_abrikos_water_today
+        name: Water today
+      - entity: sensor.don_abrikos_weight
+        name: Weight
+      - entity: sensor.don_abrikos_next_feeding
+        name: Next feeding
+      - entity: sensor.don_abrikos_next_walk
+        name: Next walk
+      - entity: sensor.don_abrikos_stress_score
+        name: Stress score
+      - entity: sensor.don_abrikos_daily_timeline
+        name: Daily timeline
+      - entity: binary_sensor.don_abrikos_home_alone
+        name: Home alone
+      - entity: sensor.don_abrikos_health_score
+        name: Health score
+      - entity: camera.don_abrikos_bowl_monitor
+        name: Bowl monitor
+  - type: calendar
+    entities:
+      - calendar.don_abrikos_timeline

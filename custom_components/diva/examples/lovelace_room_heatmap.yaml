@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+  - type: entities
+    title: Room Heatmap
+    show_header_toggle: false
+    entities:
+      - entity: sensor.don_abrikos_current_room
+      - entity: sensor.don_abrikos_room_heatmap
+
+  - type: markdown
+    title: Today
+    content: |
+      {% set rows = state_attr('sensor.don_abrikos_room_heatmap', 'today_rows') or [] %}
+      | Room | Time | Share | Heat |
+      |---|---:|---:|:---:|
+      {% for row in rows %}
+      | {{ row.room_name }} | {{ row.minutes }} min | {{ row.share_pct }}% | {{ row.blocks }} |
+      {% endfor %}
+
+  - type: markdown
+    title: Last 7 Days
+    content: |
+      {% set rows = state_attr('sensor.don_abrikos_room_heatmap', 'week_rows') or [] %}
+      | Room | Time | Share | Heat |
+      |---|---:|---:|:---:|
+      {% for row in rows %}
+      | {{ row.room_name }} | {{ row.hours }} h | {{ row.share_pct }}% | {{ row.blocks }} |
+      {% endfor %}

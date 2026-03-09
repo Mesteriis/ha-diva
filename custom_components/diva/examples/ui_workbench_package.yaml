@@ -1,0 +1,215 @@
+input_text:
+  diva_ui_pet_id:
+    name: DIVA pet_id
+    initial: don_abrikos_a1b2c3
+  diva_ui_vaccine_dose_id:
+    name: DIVA vaccine dose ID
+  diva_ui_vaccine_name:
+    name: DIVA vaccine name
+  diva_ui_medication_name:
+    name: DIVA medication name
+  diva_ui_medication_dose:
+    name: DIVA medication dose
+  diva_ui_actor:
+    name: DIVA actor
+  diva_ui_note:
+    name: DIVA note
+
+input_datetime:
+  diva_ui_vaccine_due_date:
+    name: DIVA vaccine due date
+    has_date: true
+    has_time: false
+
+input_number:
+  diva_ui_report_history_days:
+    name: DIVA report history days
+    min: 1
+    max: 365
+    step: 1
+    mode: box
+    initial: 30
+
+input_select:
+  diva_ui_report_format:
+    name: DIVA report format
+    options:
+      - txt
+      - pdf
+    initial: pdf
+
+script:
+  diva_ui_complete_vaccine:
+    alias: DIVA UI Complete Vaccine
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+          dose_id: "{{ states('input_text.diva_ui_vaccine_dose_id') | trim }}"
+          vaccine_name: "{{ states('input_text.diva_ui_vaccine_name') | trim }}"
+          note: "{{ states('input_text.diva_ui_note') | trim }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 and dose_id | length > 0 }}"
+            sequence:
+              - action: diva.complete_vaccine_dose
+                data:
+                  pet_id: "{{ pet_id }}"
+                  vaccine_dose_id: "{{ dose_id }}"
+                  note: "{{ note }}"
+          - conditions: "{{ pet_id | length > 0 and vaccine_name | length > 0 }}"
+            sequence:
+              - action: diva.complete_vaccine_dose
+                data:
+                  pet_id: "{{ pet_id }}"
+                  vaccine_name: "{{ vaccine_name }}"
+                  note: "{{ note }}"
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id and either vaccine dose ID or vaccine name."
+
+  diva_ui_reschedule_vaccine:
+    alias: DIVA UI Reschedule Vaccine
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+          dose_id: "{{ states('input_text.diva_ui_vaccine_dose_id') | trim }}"
+          vaccine_name: "{{ states('input_text.diva_ui_vaccine_name') | trim }}"
+          due_date: "{{ states('input_datetime.diva_ui_vaccine_due_date') }}"
+          note: "{{ states('input_text.diva_ui_note') | trim }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 and dose_id | length > 0 and due_date not in ['unknown', 'unavailable', ''] }}"
+            sequence:
+              - action: diva.reschedule_vaccine
+                data:
+                  pet_id: "{{ pet_id }}"
+                  vaccine_dose_id: "{{ dose_id }}"
+                  due_date: "{{ due_date }}"
+                  note: "{{ note }}"
+          - conditions: "{{ pet_id | length > 0 and vaccine_name | length > 0 and due_date not in ['unknown', 'unavailable', ''] }}"
+            sequence:
+              - action: diva.reschedule_vaccine
+                data:
+                  pet_id: "{{ pet_id }}"
+                  vaccine_name: "{{ vaccine_name }}"
+                  due_date: "{{ due_date }}"
+                  note: "{{ note }}"
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id, a due date, and either vaccine dose ID or vaccine name."
+
+  diva_ui_cancel_vaccine:
+    alias: DIVA UI Cancel Vaccine
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+          dose_id: "{{ states('input_text.diva_ui_vaccine_dose_id') | trim }}"
+          vaccine_name: "{{ states('input_text.diva_ui_vaccine_name') | trim }}"
+          note: "{{ states('input_text.diva_ui_note') | trim }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 and dose_id | length > 0 }}"
+            sequence:
+              - action: diva.cancel_vaccine
+                data:
+                  pet_id: "{{ pet_id }}"
+                  vaccine_dose_id: "{{ dose_id }}"
+                  reason: "{{ note }}"
+          - conditions: "{{ pet_id | length > 0 and vaccine_name | length > 0 }}"
+            sequence:
+              - action: diva.cancel_vaccine
+                data:
+                  pet_id: "{{ pet_id }}"
+                  vaccine_name: "{{ vaccine_name }}"
+                  reason: "{{ note }}"
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id and either vaccine dose ID or vaccine name."
+
+  diva_ui_log_medication_dose:
+    alias: DIVA UI Log Medication Dose
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+          medication_name: "{{ states('input_text.diva_ui_medication_name') | trim }}"
+          dose: "{{ states('input_text.diva_ui_medication_dose') | trim }}"
+          actor: "{{ states('input_text.diva_ui_actor') | trim }}"
+          note: "{{ states('input_text.diva_ui_note') | trim }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 and medication_name | length > 0 }}"
+            sequence:
+              - action: diva.log_medication_dose
+                data:
+                  pet_id: "{{ pet_id }}"
+                  medication_name: "{{ medication_name }}"
+                  dose: "{{ dose }}"
+                  actor: "{{ actor }}"
+                  note: "{{ note }}"
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id and medication name."
+
+  diva_ui_generate_vet_report:
+    alias: DIVA UI Generate Vet Report
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+          report_format: "{{ states('input_select.diva_ui_report_format') }}"
+          history_days: "{{ states('input_number.diva_ui_report_history_days') | int(30) }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 }}"
+            sequence:
+              - action: diva.generate_vet_report
+                data:
+                  pet_id: "{{ pet_id }}"
+                  report_format: "{{ report_format }}"
+                  history_days: "{{ history_days }}"
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id before exporting a report."
+
+  diva_ui_generate_operations_report:
+    alias: DIVA UI Generate Operations Report
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+          report_format: "{{ states('input_select.diva_ui_report_format') }}"
+          history_days: "{{ states('input_number.diva_ui_report_history_days') | int(7) }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 }}"
+            sequence:
+              - action: diva.generate_operations_report
+                data:
+                  pet_id: "{{ pet_id }}"
+                  report_format: "{{ report_format }}"
+                  history_days: "{{ history_days }}"
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id before exporting a report."
+
+  diva_ui_sync_calendar:
+    alias: DIVA UI Sync Calendar
+    sequence:
+      - variables:
+          pet_id: "{{ states('input_text.diva_ui_pet_id') | trim }}"
+      - choose:
+          - conditions: "{{ pet_id | length > 0 }}"
+            sequence:
+              - action: diva.sync_calendar
+                data:
+                  pet_id: "{{ pet_id }}"
+                  days: 14
+        default:
+          - action: persistent_notification.create
+            data:
+              title: DIVA UI
+              message: "Set DIVA pet_id before syncing calendars."

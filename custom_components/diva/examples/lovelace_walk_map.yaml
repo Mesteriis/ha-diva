@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+  - type: map
+    title: Walk Map
+    entities:
+      - entity: device_tracker.don_abrikos_location
+    hours_to_show: 12
+    dark_mode: false
+
+  - type: entities
+    title: Walk Route
+    show_header_toggle: false
+    entities:
+      - entity: device_tracker.don_abrikos_location
+      - entity: sensor.don_abrikos_walk_distance
+      - entity: sensor.don_abrikos_current_zone
+      - entity: sensor.don_abrikos_current_room
+
+  - type: markdown
+    title: Notes
+    content: |
+      DIVA publishes `device_tracker.don_abrikos_location` from the pet GPS history.
+
+      Useful attributes on `sensor.don_abrikos_walk_distance`:
+      - `current_route_line`
+      - `last_route_line`
+      - `current_route_geojson`
+      - `last_route_geojson`

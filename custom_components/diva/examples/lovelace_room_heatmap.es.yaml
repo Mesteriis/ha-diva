@@ -1,0 +1,28 @@
+type: vertical-stack
+cards:
+  - type: entities
+    title: Mapa de calor de habitaciones
+    show_header_toggle: false
+    entities:
+      - entity: sensor.don_abrikos_current_room
+      - entity: sensor.don_abrikos_room_heatmap
+
+  - type: markdown
+    title: Hoy
+    content: |
+      {% set rows = state_attr('sensor.don_abrikos_room_heatmap', 'today_rows') or [] %}
+      | Habitación | Tiempo | Cuota | Heat |
+      |---|---:|---:|:---:|
+      {% for row in rows %}
+      | {{ row.room_name }} | {{ row.minutes }} min | {{ row.share_pct }}% | {{ row.blocks }} |
+      {% endfor %}
+
+  - type: markdown
+    title: Últimos 7 días
+    content: |
+      {% set rows = state_attr('sensor.don_abrikos_room_heatmap', 'week_rows') or [] %}
+      | Habitación | Tiempo | Cuota | Heat |
+      |---|---:|---:|:---:|
+      {% for row in rows %}
+      | {{ row.room_name }} | {{ row.hours }} h | {{ row.share_pct }}% | {{ row.blocks }} |
+      {% endfor %}
