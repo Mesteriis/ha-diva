@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/Mesteriis/ha-diva/compare/v1.5.1...v1.6.0) (2026-03-09)
+
+
+### Features
+
+* complete diva roadmap batch ([f7d8e54](https://github.com/Mesteriis/ha-diva/commit/f7d8e54a1190cf96de64a7c5f09615a6dcb0c6d9))
+* complete diva roadmap batch ([44ea52e](https://github.com/Mesteriis/ha-diva/commit/44ea52eb5f499cbfdf8a0f32c900adf749982a83))
+
 ## [1.5.1](https://github.com/Mesteriis/ha-diva/compare/v1.5.0...v1.5.1) (2026-03-09)
 
 
