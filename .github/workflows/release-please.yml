@@ -14,8 +14,37 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - id: release
+        uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
+      - uses: actions/checkout@v4
+        if: steps.release.outputs.release_created == 'true'
+        with:
+          ref: ${{ steps.release.outputs.tag_name }}
+      - uses: actions/setup-node@v4
+        if: steps.release.outputs.release_created == 'true'
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install frontend tooling
+        if: steps.release.outputs.release_created == 'true'
+        run: npm ci
+      - name: Build frontend
+        if: steps.release.outputs.release_created == 'true'
+        run: npm run build
+      - name: Package HACS repository
+        if: steps.release.outputs.release_created == 'true'
+        run: zip -r diva-hacs.zip custom_components README.md README.ru.md README.es.md CHANGELOG.md LICENSE hacs.json docs mkdocs.yml package.json
+      - name: Upload release assets
+        if: steps.release.outputs.release_created == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag_name }}
+          files: |
+            diva-hacs.zip
+            custom_components/diva/frontend/diva-editor-panel.js
+            README.md
+            CHANGELOG.md
