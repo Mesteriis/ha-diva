@@ -216,6 +216,15 @@ log_symptom:
           max: 5
           step: 0.5
           mode: box
+    duration_hours:
+      example: 6
+      selector:
+        number:
+          min: 0.1
+          max: 24
+          step: 0.1
+          unit_of_measurement: h
+          mode: box
     note:
       example: Vomited once after lunch
       selector:
@@ -302,13 +311,26 @@ observe_behavior:
       example: yolo-pet-v2
       selector:
         text:
+    adapter:
+      advanced: true
+      example: frigate
+      selector:
+        text:
+    adapter_payload:
+      advanced: true
+      selector:
+        object:
+    evidence:
+      advanced: true
+      selector:
+        object:
     message:
       example: Repeated dry cough detected near the sofa
       selector:
         text:
           multiline: true
     source:
-      example: vision_pipeline
+      example: frigate
       selector:
         text:
 
@@ -613,6 +635,7 @@ add_schedule_exception:
             - grooming
             - training
     new_time:
+      example: "20:30"
       selector:
         time:
     duration_minutes:

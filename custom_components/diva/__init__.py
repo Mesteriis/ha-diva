@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime, time
 from typing import Any
 
 import voluptuous as vol
@@ -13,6 +14,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
+from .capability_adapters import adapt_behavior_observation
 from .const import (
     CONF_APPROVAL_ID,
     CONF_APPROVED_BY,
@@ -100,6 +102,47 @@ SERVICE_TARGET_BASE = {
     vol.Optional(CONF_PET_ID): cv.string,
     vol.Optional(ATTR_DEVICE_ID): vol.Any(cv.string, [cv.string]),
 }
+
+
+def _coerce_service_date(value: Any) -> str:
+    """Normalize a service date-like value into an ISO date string."""
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    text = str(value).strip()
+    if not text:
+        raise vol.Invalid("Date value is required")
+    try:
+        return date.fromisoformat(text).isoformat()
+    except ValueError as err:
+        raise vol.Invalid("Date must use YYYY-MM-DD") from err
+
+
+def _coerce_service_time(value: Any) -> str:
+    """Normalize a service time-like value into an HH:MM string."""
+    if isinstance(value, datetime):
+        return value.time().strftime("%H:%M")
+    if isinstance(value, time):
+        return value.strftime("%H:%M")
+    text = str(value).strip()
+    if not text:
+        raise vol.Invalid("Time value is required")
+    try:
+        return time.fromisoformat(text).strftime("%H:%M")
+    except ValueError as err:
+        raise vol.Invalid("Time must use HH:MM") from err
+
+
+def _coerce_service_object(value: Any) -> dict[str, Any]:
+    """Validate and shallow-copy a service mapping payload."""
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise vol.Invalid("Value must be an object")
+    return dict(value)
+
+
 SERVICE_FEED_SCHEMA = vol.Schema(
     {
         **SERVICE_TARGET_BASE,
@@ -152,8 +195,8 @@ SERVICE_UPSERT_MEDICATION_SCHEMA = vol.Schema(
         vol.Required(CONF_MEDICATION_NAME): cv.string,
         vol.Optional(CONF_DOSE): cv.string,
         vol.Optional("times"): cv.string,
-        vol.Optional("start_date"): cv.string,
-        vol.Optional("end_date"): cv.string,
+        vol.Optional("start_date"): _coerce_service_date,
+        vol.Optional("end_date"): _coerce_service_date,
         vol.Optional("route"): cv.string,
         vol.Optional(CONF_NOTES): cv.string,
     }
@@ -195,7 +238,7 @@ SERVICE_UPSERT_VACCINE_SCHEMA = vol.Schema(
         **SERVICE_TARGET_BASE,
         vol.Optional(CONF_VACCINE_DOSE_ID): cv.string,
         vol.Optional(CONF_VACCINE_NAME): cv.string,
-        vol.Optional(CONF_DUE_DATE): cv.string,
+        vol.Optional(CONF_DUE_DATE): _coerce_service_date,
         vol.Optional("recurrence_months"): vol.All(vol.Coerce(int), vol.Range(min=1, max=60)),
         vol.Optional("category"): cv.string,
         vol.Optional(CONF_NOTES): cv.string,
@@ -236,7 +279,7 @@ SERVICE_RESCHEDULE_VACCINE_SCHEMA = vol.Schema(
         **SERVICE_TARGET_BASE,
         vol.Optional(CONF_VACCINE_DOSE_ID): cv.string,
         vol.Optional(CONF_VACCINE_NAME): cv.string,
-        vol.Required(CONF_DUE_DATE): cv.string,
+        vol.Required(CONF_DUE_DATE): _coerce_service_date,
         vol.Optional("note"): cv.string,
     }
 )
@@ -263,10 +306,13 @@ SERVICE_OBSERVE_BEHAVIOR_SCHEMA = vol.Schema(
         vol.Required("behavior_type"): cv.string,
         vol.Optional("severity", default="warning"): vol.In(["info", "warning", "critical"]),
         vol.Optional("message"): cv.string,
-        vol.Optional("source", default="vision_pipeline"): cv.string,
-        vol.Optional("confidence", default=0.85): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=1.0)),
+        vol.Optional("source"): cv.string,
+        vol.Optional("confidence"): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=1.0)),
         vol.Optional("duration_seconds"): vol.All(vol.Coerce(int), vol.Range(min=1, max=86400)),
         vol.Optional("model_name"): cv.string,
+        vol.Optional("adapter"): cv.string,
+        vol.Optional("adapter_payload"): _coerce_service_object,
+        vol.Optional("evidence"): _coerce_service_object,
     }
 )
 SERVICE_COMPLETE_CHECKLIST_ITEM_SCHEMA = vol.Schema(
@@ -296,10 +342,10 @@ SERVICE_APPLY_MODE_SCHEMA = vol.Schema(
 SERVICE_ADD_EXCEPTION_SCHEMA = vol.Schema(
     {
         **SERVICE_TARGET_BASE,
-        vol.Required(CONF_ROUTINE_EXCEPTION_DATE): cv.string,
+        vol.Required(CONF_ROUTINE_EXCEPTION_DATE): _coerce_service_date,
         vol.Required(CONF_ROUTINE_EXCEPTION_ACTION): vol.In(ROUTINE_EXCEPTION_ACTIONS),
         vol.Required(CONF_ROUTINE_CATEGORY): vol.In(ROUTINE_CATEGORIES),
-        vol.Optional(CONF_ROUTINE_EXCEPTION_TIME): cv.string,
+        vol.Optional(CONF_ROUTINE_EXCEPTION_TIME): _coerce_service_time,
         vol.Optional(CONF_ROUTINE_DURATION_MINUTES): vol.Coerce(int),
         vol.Optional(CONF_ROUTINE_LABEL): cv.string,
         vol.Optional(CONF_ROUTINE_MEAL_TYPE): cv.string,
@@ -545,8 +591,11 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
 
     async def handle_remove_medication_course(call: ServiceCall) -> None:
         medication_name = str(call.data[CONF_MEDICATION_NAME])
-        for coordinator, pet_id in _resolve_target_pets(hass, call):
-            await coordinator.async_remove_medication_course(pet_id, medication_name)
+        try:
+            for coordinator, pet_id in _resolve_target_pets(hass, call):
+                await coordinator.async_remove_medication_course(pet_id, medication_name)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def handle_log_symptom(call: ServiceCall) -> None:
         symptom_name = str(call.data[CONF_SYMPTOM_NAME])
@@ -579,23 +628,18 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
             )
 
     async def handle_observe_behavior(call: ServiceCall) -> None:
-        behavior_type = str(call.data["behavior_type"])
-        severity = str(call.data.get("severity", "warning"))
-        message = call.data.get("message")
-        source = str(call.data.get("source", "vision_pipeline"))
-        confidence = float(call.data.get("confidence", 0.85))
-        duration_seconds = call.data.get("duration_seconds")
-        model_name = call.data.get("model_name")
+        payload = _build_behavior_observation_payload(call)
         for coordinator, pet_id in _resolve_target_pets(hass, call):
             await coordinator.async_observe_behavior(
                 pet_id,
-                behavior_type,
-                severity=severity,
-                message=message,
-                source=source,
-                confidence=confidence,
-                duration_seconds=int(duration_seconds) if duration_seconds is not None else None,
-                model_name=model_name,
+                payload["behavior_type"],
+                severity=payload["severity"],
+                message=payload["message"],
+                source=payload["source"],
+                confidence=payload["confidence"],
+                duration_seconds=payload["duration_seconds"],
+                model_name=payload["model_name"],
+                evidence=payload["evidence"],
             )
 
     async def handle_apply_mode(call: ServiceCall) -> None:
@@ -672,14 +716,17 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         actor = call.data.get("actor") or call.context.user_id
         note = call.data.get("note")
         source = str(call.data.get("source", "manual"))
-        for coordinator, pet_id in _resolve_target_pets(hass, call):
-            await coordinator.async_complete_checklist_item(
-                pet_id,
-                checklist_id,
-                actor=actor,
-                note=note,
-                source=source,
-            )
+        try:
+            for coordinator, pet_id in _resolve_target_pets(hass, call):
+                await coordinator.async_complete_checklist_item(
+                    pet_id,
+                    checklist_id,
+                    actor=actor,
+                    note=note,
+                    source=source,
+                )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def handle_approve_action(call: ServiceCall) -> None:
         approval_id = str(call.data[CONF_APPROVAL_ID])
@@ -690,13 +737,16 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
             if call.data.get(CONF_PET_ID) or call.data.get(ATTR_DEVICE_ID)
             else _resolve_target_pets_from_approval_id(hass, approval_id)
         )
-        for coordinator, pet_id in targets:
-            await coordinator.async_approve_action(
-                pet_id,
-                approval_id,
-                approved_by=approved_by,
-                note=note,
-            )
+        try:
+            for coordinator, pet_id in targets:
+                await coordinator.async_approve_action(
+                    pet_id,
+                    approval_id,
+                    approved_by=approved_by,
+                    note=note,
+                )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def handle_generate_operations_report(call: ServiceCall) -> None:
         report_format = str(call.data.get(CONF_REPORT_FORMAT, "txt"))
@@ -729,14 +779,17 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         note = call.data.get("note")
         if not dose_id and not vaccine_name:
             raise HomeAssistantError("Specify vaccine_dose_id or vaccine_name")
-        for coordinator, pet_id in _resolve_target_pets(hass, call):
-            await coordinator.async_reschedule_vaccine(
-                pet_id,
-                due_date=due_date,
-                dose_id=dose_id,
-                vaccine_name=vaccine_name,
-                note=note,
-            )
+        try:
+            for coordinator, pet_id in _resolve_target_pets(hass, call):
+                await coordinator.async_reschedule_vaccine(
+                    pet_id,
+                    due_date=due_date,
+                    dose_id=dose_id,
+                    vaccine_name=vaccine_name,
+                    note=note,
+                )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def handle_cancel_vaccine(call: ServiceCall) -> None:
         dose_id = call.data.get(CONF_VACCINE_DOSE_ID)
@@ -744,34 +797,24 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         reason = call.data.get(CONF_REASON)
         if not dose_id and not vaccine_name:
             raise HomeAssistantError("Specify vaccine_dose_id or vaccine_name")
-        for coordinator, pet_id in _resolve_target_pets(hass, call):
-            await coordinator.async_cancel_vaccine(
-                pet_id,
-                dose_id=dose_id,
-                vaccine_name=vaccine_name,
-                reason=reason,
-            )
+        try:
+            for coordinator, pet_id in _resolve_target_pets(hass, call):
+                await coordinator.async_cancel_vaccine(
+                    pet_id,
+                    dose_id=dose_id,
+                    vaccine_name=vaccine_name,
+                    reason=reason,
+                )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     async def handle_add_schedule_exception(call: ServiceCall) -> None:
-        payload = {
-            key: value
-            for key, value in call.data.items()
-            if key
-            in {
-                CONF_ROUTINE_EXCEPTION_DATE,
-                CONF_ROUTINE_EXCEPTION_ACTION,
-                CONF_ROUTINE_CATEGORY,
-                CONF_ROUTINE_EXCEPTION_TIME,
-                CONF_ROUTINE_DURATION_MINUTES,
-                CONF_ROUTINE_LABEL,
-                CONF_ROUTINE_MEAL_TYPE,
-                CONF_ROUTINE_PORTION_GRAMS,
-                CONF_ROUTINE_LOCATION,
-                CONF_NOTES,
-            }
-        }
-        for coordinator, pet_id in _resolve_target_pets(hass, call):
-            await coordinator.async_add_schedule_exception(pet_id, payload)
+        payload = _build_schedule_exception_payload(call)
+        try:
+            for coordinator, pet_id in _resolve_target_pets(hass, call):
+                await coordinator.async_add_schedule_exception(pet_id, payload)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
     hass.services.async_register(DOMAIN, SERVICE_FEED_PET, handle_feed_pet, schema=SERVICE_FEED_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_SKIP_FEEDING, handle_skip_feeding, schema=SERVICE_SIMPLE_SCHEMA)
@@ -898,7 +941,7 @@ def _resolve_target_pets(hass: HomeAssistant, call: ServiceCall) -> list[tuple[A
         selected = [(coordinator, pet_id) for coordinator in coordinators if pet_id in coordinator.pets]
         if not selected:
             raise HomeAssistantError(f"Unknown DIVA pet_id: {pet_id}")
-        return selected
+        return _dedupe_targets(selected)
 
     device_ids = call.data.get(ATTR_DEVICE_ID)
     if device_ids:
@@ -916,11 +959,11 @@ def _resolve_target_pets(hass: HomeAssistant, call: ServiceCall) -> list[tuple[A
                         selected.append((coordinator, identifier))
         if not selected:
             raise HomeAssistantError("No DIVA pets matched the requested device target")
-        return selected
+        return _dedupe_targets(selected)
 
     all_pets = [(coordinator, pet_id) for coordinator in coordinators for pet_id in coordinator.pet_ids]
     if len(all_pets) == 1:
-        return all_pets
+        return _dedupe_targets(all_pets)
 
     raise HomeAssistantError("Specify pet_id or device_id when multiple DIVA pets exist")
 
@@ -980,4 +1023,81 @@ def _resolve_target_pets_from_approval_id(hass: HomeAssistant, approval_id: str)
     selected = [(coordinator, pet_id) for coordinator in coordinators if pet_id in coordinator.pets]
     if not selected:
         raise HomeAssistantError(f"Unknown DIVA approval target: {approval_id}")
-    return selected
+    return _dedupe_targets(selected)
+
+
+def _dedupe_targets(targets: list[tuple[Any, str]]) -> list[tuple[Any, str]]:
+    """Remove duplicate pet targets while preserving order."""
+    unique: list[tuple[Any, str]] = []
+    seen: set[tuple[int, str]] = set()
+    for coordinator, pet_id in targets:
+        marker = (id(coordinator), pet_id)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        unique.append((coordinator, pet_id))
+    return unique
+
+
+def _build_schedule_exception_payload(call: ServiceCall) -> dict[str, Any]:
+    """Build and validate a schedule exception service payload."""
+    payload = {
+        key: value
+        for key, value in call.data.items()
+        if key
+        in {
+            CONF_ROUTINE_EXCEPTION_DATE,
+            CONF_ROUTINE_EXCEPTION_ACTION,
+            CONF_ROUTINE_CATEGORY,
+            CONF_ROUTINE_EXCEPTION_TIME,
+            CONF_ROUTINE_DURATION_MINUTES,
+            CONF_ROUTINE_LABEL,
+            CONF_ROUTINE_MEAL_TYPE,
+            CONF_ROUTINE_PORTION_GRAMS,
+            CONF_ROUTINE_LOCATION,
+            CONF_NOTES,
+        }
+    }
+    action = payload.get(CONF_ROUTINE_EXCEPTION_ACTION)
+    category = payload.get(CONF_ROUTINE_CATEGORY)
+    if action in {"add", "move"} and not payload.get(CONF_ROUTINE_EXCEPTION_TIME):
+        raise HomeAssistantError("new_time is required for add and move schedule exceptions")
+    if category != "feed" and payload.get(CONF_ROUTINE_MEAL_TYPE):
+        raise HomeAssistantError("meal_type is only supported for feed schedule exceptions")
+    if category != "feed" and payload.get(CONF_ROUTINE_PORTION_GRAMS) is not None:
+        raise HomeAssistantError("portion_grams is only supported for feed schedule exceptions")
+    return payload
+
+
+def _build_behavior_observation_payload(call: ServiceCall) -> dict[str, Any]:
+    """Build a behavior observation payload with optional adapter normalization."""
+    adapter = call.data.get("adapter")
+    adapter_payload = call.data.get("adapter_payload")
+    if adapter_payload is not None and not adapter:
+        raise HomeAssistantError("adapter is required when adapter_payload is provided")
+    try:
+        adapted = adapt_behavior_observation(adapter, adapter_payload)
+    except ValueError as err:
+        raise HomeAssistantError(str(err)) from err
+
+    duration_seconds = call.data.get("duration_seconds")
+    evidence = dict(adapted.get("evidence") or {})
+    evidence.update(call.data.get("evidence") or {})
+    adapted_duration = adapted.get("duration_seconds")
+    adapted_confidence = adapted.get("confidence")
+    raw_confidence = call.data.get("confidence")
+
+    return {
+        "behavior_type": str(call.data["behavior_type"]),
+        "severity": str(call.data.get("severity", "warning")),
+        "message": call.data.get("message") or adapted.get("message"),
+        "source": str(call.data.get("source") or adapted.get("source") or "vision_pipeline"),
+        "confidence": float(raw_confidence if raw_confidence is not None else adapted_confidence or 0.85),
+        "duration_seconds": (
+            int(duration_seconds if duration_seconds is not None else adapted_duration)
+            if duration_seconds is not None or adapted_duration is not None
+            else None
+        ),
+        "model_name": call.data.get("model_name") or adapted.get("model_name"),
+        "evidence": evidence,
+    }

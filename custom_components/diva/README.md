@@ -504,6 +504,8 @@ Additional runtime events now include schedule and journal flows such as:
 - `diva.upsert_vaccine_override`
 - `diva.remove_vaccine_override`
 - `diva.reschedule_vaccine`
+
+`diva.observe_behavior` now supports adapter-ready payloads and raw evidence objects, so Home Assistant automations can forward Frigate MQTT events without baking Frigate-specific parsing into the automation itself.
 - `diva.cancel_vaccine`
 - `diva.upsert_medication_course`
 - `diva.remove_medication_course`
@@ -603,7 +605,10 @@ Current panel coverage:
 - vaccine complete, reschedule, cancel
 - vaccine override create, edit, remove
 - manual calendar sync
+- calendar conflict review and resolution
 - vet and operations report export
+- walk map summary
+- room heatmap summary
 
 Sidebar visibility is configurable from `Settings -> Devices & Services -> DIVA -> Configure -> Hub settings`.
 When hidden, the editor route still exists at `/diva-editor`.

@@ -151,7 +151,10 @@ La cobertura actual del panel incluye:
 - complete/reschedule/cancel de vacunas
 - create/edit/remove de vaccine overrides
 - calendar sync manual
+- revisión y resolución de calendar conflicts
 - export de vet report y operations report
+- resumen de walk map
+- resumen de room heatmap
 
 La visibilidad del enlace en la barra lateral se configura en:
 

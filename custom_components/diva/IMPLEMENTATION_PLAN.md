@@ -131,7 +131,8 @@
   - `BehaviorEngine`
   - `ReportingEngine`
 - [ ] тяжелую аналитику выносить из event loop
-- [ ] для vision/AI использовать capability adapters, а не hardcoded pipelines
+- [x] для external vision/AI ingest использовать capability adapters, а не hardcoded pipelines
+  - `observe_behavior` принимает adapter-ready payloads и Frigate metadata
 
 ### Storage
 
@@ -381,65 +382,69 @@
 - [x] vaccine calendar editor
 - [x] medication course editor
 - [x] symptom timeline card
-- [ ] walk map card
-- [ ] room heatmap card
+- [x] walk map card
+- [x] room heatmap card
 - [x] family operations center
 - [x] report export dialog
-- [ ] conflict resolution dialog for calendar sync
+- [x] conflict resolution dialog for calendar sync
 
 ## Entities / services backlog
 
 ### New entities
 
-- [ ] `sensor.<pet>_weight_trend`
-- [ ] `sensor.<pet>_body_condition_score`
+- [x] `sensor.<pet>_weight_trend`
+- [x] `sensor.<pet>_body_condition_score`
 - [x] `sensor.<pet>_separation_risk`
 - [x] `sensor.<pet>_room_preference`
 - [x] `sensor.<pet>_walk_distance_today`
 - [x] `sensor.<pet>_symptom_burden`
 - [x] `sensor.<pet>_recovery_progress`
-- [ ] `sensor.<pet>_vaccine_status`
+- [x] `sensor.<pet>_vaccine_status`
 - [x] `sensor.<pet>_checklist_completion`
 
 ### New services
 
-- [ ] `diva.apply_mode`
-- [ ] `diva.add_schedule_exception`
+- [x] `diva.apply_mode`
+- [x] `diva.add_schedule_exception`
 - [x] `diva.log_symptom`
-- [ ] `diva.confirm_action`
+- [x] `diva.approve_action`
 - [x] `diva.start_recovery_plan`
 - [x] `diva.generate_vet_report`
-- [ ] `diva.export_pdf`
-- [ ] `diva.sync_calendar_bidirectional`
+- [x] PDF export через `generate_vet_report` / `generate_operations_report` с `report_format: pdf`
+- [x] `diva.sync_calendar` как bidirectional sync entry point
+- [x] service hardening: validation for date/time payloads, deduplicated device targets, approvals stay pending on execution failure
 
 ## Testing strategy
 
 ### Unit tests
 
-- [ ] routine exception resolution
-- [ ] adaptive schedule shifts
+- [x] routine exception resolution
+- [x] adaptive schedule shifts
 - [x] vaccine template generation for Spain
-- [ ] weather policy engine
+- [x] weather policy engine
 - [x] medication course logic
-- [ ] weight trend and BCS scoring
-- [ ] geofence breach logic
-- [ ] BLE+camera fusion logic
-- [ ] subtle anomaly scoring
-- [ ] calendar conflict resolution
+- [x] weight trend and BCS scoring
+- [x] geofence breach logic
+- [x] BLE+camera fusion logic
+- [x] subtle anomaly scoring
+- [x] calendar conflict resolution
 
 ### Integration tests
 
-- [ ] config flow with all new sections
-- [ ] entity creation for medical/mobility/reporting
-- [ ] HA calendar sync create/update/delete/import
+- [x] config flow with all new sections
+- [x] entity creation for medical/mobility/reporting
+- [x] HA calendar sync create/update/delete/import
+- [x] unit coverage for calendar sync lifecycle create/update/delete/import
+- [x] scenario runtime validation harness for one adult dog with GPS + BLE + camera
 - [x] Telegram handoff via HA automation path
-- [ ] PDF generation job lifecycle
-- [ ] storage migration `v2 -> v3`
+- [x] PDF generation job lifecycle
+- [x] storage migration `v2 -> v3`
 
 ### Live validation
 
 - [ ] one puppy dog profile in Spain
 - [ ] one adult dog with GPS + BLE + camera
+- [ ] one Frigate MQTT / tracked object pipeline
 - [ ] one household with multiple caregivers
 - [ ] one linked Google calendar
 - [ ] one linked CalDAV calendar
