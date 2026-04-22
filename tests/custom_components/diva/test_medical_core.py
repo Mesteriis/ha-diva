@@ -129,6 +129,20 @@ def test_spain_cocker_vaccine_plan_and_completion() -> None:
     assert rabies.next_due_date(date(2026, 3, 9)) == date(2027, 3, 9)
 
 
+def test_spain_puppy_leish_review_due_date_is_stable() -> None:
+    profile = PetProfile.from_dict(
+        {
+            **_medical_profile().as_dict(),
+            "birthdate": "2025-09-01",
+        }
+    )
+
+    plan = profile.vaccine_plan(date(2026, 3, 18))
+    leish = next(item for item in plan if item.vaccine_name == "Leishmaniosis prevention review")
+
+    assert leish.due_date == date(2026, 2, 28)
+
+
 def test_vaccine_profile_regional_policy_and_vet_override() -> None:
     base = _medical_profile()
     no_override = PetProfile.from_dict(

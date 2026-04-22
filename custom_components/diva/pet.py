@@ -6027,7 +6027,7 @@ def build_default_vaccine_plan(
             add(
                 "leish_annual",
                 "Leishmaniosis prevention review",
-                max(birthdate + timedelta(days=180), today),
+                birthdate + timedelta(days=180),
                 "endemic",
                 recurrence_months=12,
                 notes="Spain endemic overlay for leishmaniosis risk review.",
